@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "event_id": "demo",
-  "name": "Synthetic Demo Event",
+  "name": "合成示例事件",
   "language": "zh",
   "platform": "weibo",
   "timezone": "Asia/Shanghai",
@@ -123,9 +123,9 @@
     }
   },
   "prompts": {
-    "event_name": "Synthetic Demo Event",
-    "event_description": "A small synthetic public-safety incident used only to demonstrate the event-import, persona, simulation, and validation pipeline.",
-    "location": "请替换为事件地点",
+    "event_name": "合成示例事件",
+    "event_description": "一个用于演示事件导入、网民画像、仿真和验证流程的小型合成公共安全事件。",
+    "location": "示例地点",
     "official_body": "负责处置此事的官方机构",
     "topic_shift_guidance": "科技创新、民生改善、文化活动、体育赛事等积极方向",
     "fallback_topic": {

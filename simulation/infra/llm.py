@@ -26,9 +26,8 @@ class BaseLLM:
         self.output_consumption = 0
 
     def print_total_consumption(self):
-        print('The input consumption is %d tokens, output consumption is %s, '
-              'cost is ~%.4f CNY.' % (self.input_consumption, self.output_consumption,
-                                      self._estimate_cost()))
+        print('输入 %d tokens，输出 %s tokens，估算费用约 %.4f 元。' % (
+            self.input_consumption, self.output_consumption, self._estimate_cost()))
 
     def _estimate_cost(self):
         return 0.0
@@ -114,7 +113,7 @@ class Remote_OpenAI_LLM(BaseLLM):
 
     def run(self, message_list, temperature=1.0, penalty_score=0.0):
         if not self.api_key:
-            raise RuntimeError('No API key configured. Set LLM_API_KEY or OPENAI_API_KEY.')
+            raise RuntimeError('未配置 API key，请设置 LLM_API_KEY 或 OPENAI_API_KEY。')
         # 必须设 timeout：没有它时一个挂住的 HTTP 请求会**无限期阻塞整个仿真**
         # （实测出现过连续 3 分钟无响应、进度停在第 3 天不动的情况）。
         # max_retries 交给 SDK 处理连接错误与 429/5xx 的自动重试。
@@ -169,14 +168,14 @@ class Remote_Claude_LLM(BaseLLM):
         }
 
     def _estimate_cost(self):
-        # Claude Sonnet 4: input $3/1M, output $15/1M
+        # Claude Sonnet 4：输入 $3/百万 token，输出 $15/百万 token
         input_cost = self.input_consumption / 1_000_000 * 3 * 7.2
         output_cost = self.output_consumption / 1_000_000 * 15 * 7.2
         return input_cost + output_cost
 
     def run(self, message_list, temperature=1.0, penalty_score=0.0):
         if not self.api_key:
-            raise RuntimeError('No Anthropic API key configured. Set LLM_API_KEY.')
+            raise RuntimeError('未配置 Anthropic API key，请设置 LLM_API_KEY。')
         # 将 OpenAI 格式的 messages 转为 Anthropic 格式
         system_prompt = None
         messages = []

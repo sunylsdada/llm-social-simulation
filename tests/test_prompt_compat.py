@@ -16,7 +16,7 @@ class PromptCompatTest(unittest.TestCase):
     def test_demo_prompt_is_generic(self):
         ctx = build_config("demo")["event_context"]
         prompt = build_scoring_system(ctx)
-        self.assertIn("Synthetic Demo Event", prompt)
+        self.assertIn("合成示例事件", prompt)
         self.assertIn("微博", prompt)
         self.assertIn("中文", prompt)
         self.assertNotIn("Reddit", prompt)
@@ -31,8 +31,8 @@ class PromptCompatTest(unittest.TestCase):
 
     def test_big5_prompts_are_generic(self):
         ctx = build_config("demo")["event_context"]
-        self.assertIn("Synthetic Demo Event", build_big5_system(ctx))
-        self.assertIn("Synthetic Demo Event", build_author_big5_system(ctx))
+        self.assertIn("合成示例事件", build_big5_system(ctx))
+        self.assertIn("合成示例事件", build_author_big5_system(ctx))
 
 
 if __name__ == "__main__":

@@ -10,10 +10,10 @@
 
 ⚠️ 会真实调用 LLM。默认规模约几块钱。
 
-用法:
-    python experiments/strategy_effect_pilot.py                     # 10 agents, 5 天
-    python experiments/strategy_effect_pilot.py --agents 20 --days 7
-    python experiments/strategy_effect_pilot.py --seeds 3            # 每策略跑 3 个种子
+用法：
+    python -m experiments.strategy_effect_pilot --event demo
+    python -m experiments.strategy_effect_pilot --event demo --agents 20 --days 7
+    python -m experiments.strategy_effect_pilot --event demo --seeds 3
 """
 
 import argparse
@@ -56,9 +56,8 @@ def run_one(base_cfg, strategy, total_days, max_agents, logger,
         cfg['LLM_config']['model_name'] = model_name
 
     # ---- 关键：固定随机种子，让五个策略共享同一套初始状态 ----
-    # Agent.__init__ 用未播种的 random.uniform() 抽初始 panic/trust/rumor，
-    # 不播种就会每个策略一套起点，末态差异完全由起点差异主导（实测过，
-    # 末态排序几乎照抄首态排序，得出假的"能区分"结论）。
+    # Agent 构造时会读取 initial_states.csv，并叠加 random.gauss 个体噪声；
+    # 不在构造前播种，每个策略就会得到一套不同的起点。
     # 同一个 seed 下各策略起跑线一致，差异才可归因到策略本身。
     random.seed(seed)
 

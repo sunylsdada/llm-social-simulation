@@ -7,11 +7,11 @@
 ⚠️ 真实侧验证只使用 negative = (anxiety + anger) / 2。
    distrust / rumor / tacitus 只作语料描述，不能当作仿真中 trust / rumor 的测量。
 
-Run a pilot first, then the full set:
+先跑试点，再跑全量：
     python -m personas.score --event demo --pilot 30
     python -m personas.score --event demo
 
-Use --report to inspect the cache without API calls:
+用 --report 查看缓存统计，不调用 API：
     python -m personas.score --event demo --report
 """
 

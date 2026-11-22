@@ -50,7 +50,7 @@ def load(interim: Path):
 
 
 def aggregate(pairs: list, phases, phase_names) -> dict:
-    """Aggregate (comment, score) pairs into per-phase metrics."""
+    """把 (评论, 打分) 对聚合为各阶段指标。"""
     phases = list(phases)
     phase_names = dict(phase_names)
     by_phase = defaultdict(list)

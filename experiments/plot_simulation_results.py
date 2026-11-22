@@ -1,10 +1,10 @@
 """
-只画仿真结果：时效性机制重演的三个状态曲线 + 个体恐慌轨迹。
+只画仿真结果：三个状态曲线 + 个体恐慌轨迹。
 
-不读取真实 negative，不读取基线 record，不做任何对比。
+不读取真实负面情绪曲线，不读取基线 record，不做任何对比。
 
-用法:
-    python experiments/plot_simulation_results.py
+用法：
+    python -m experiments.plot_simulation_results --event demo --run-id baseline
 """
 
 import argparse
@@ -16,7 +16,7 @@ from pathlib import Path
 if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-# dataviz 参考调色板（light surface）
+# 绘图参考调色板（浅色背景）
 SURFACE = '#fcfcfb'
 INK = '#0b0b0b'
 SECONDARY = '#52514e'
@@ -71,7 +71,7 @@ def main():
     global PHASES
     parser = argparse.ArgumentParser(description='只画仿真状态结果')
     parser.add_argument('--event', default='demo',
-                        help='事件 ID；留空则用旧的 replay_small 默认路径')
+                        help='事件 ID（默认 demo）')
     parser.add_argument('--run-id', default='baseline')
     parser.add_argument('--record', default=None)
     parser.add_argument('--out', default=None)
@@ -170,9 +170,9 @@ def main():
                                     alpha=0.95))
 
     ax1.set_ylim(0, 1.10)
-    ax1.set_xlim(0.5, 17.2)
+    ax1.set_xlim(0.5, days[-1] + 0.5)
     ax1.set_ylabel('状态值（0–1）', fontsize=10, color=SECONDARY)
-    ax1.set_title('A. 全网平均状态（恐慌峰值 day 12）', loc='left',
+    ax1.set_title('A. 全网平均状态', loc='left',
                   fontsize=11.5, fontweight='bold', color=INK, pad=8)
     ax1.grid(True, color=GRID, lw=0.8, alpha=0.85)
     ax1.set_axisbelow(True)
@@ -197,7 +197,7 @@ def main():
     ax2.plot(days, panic, color=PANIC, lw=2.4, zorder=4)
 
     ax2.annotate(f'全网均值 {panic[-1]:.2f}', xy=(days[-1], panic[-1]),
-                 xytext=(15.7, panic[-1] + 0.06), fontsize=8.5,
+                 xytext=(days[-1] - 0.3, panic[-1] + 0.06), fontsize=8.5,
                  color=SECONDARY, va='center',
                  arrowprops=dict(arrowstyle='-', color=AXIS, lw=0.8))
     ax2.plot([days[-1] + 0.30], [panic[-1]], marker='o', ms=4,
@@ -205,22 +205,22 @@ def main():
 
     ax2.text(0.015, 0.025,
              '每条细线 = 1 个 agent；空白 = 当天未上线\n'
-             '10 个 agent 的恐慌均净上升',
+             '细线为个体 agent 的恐慌轨迹',
              transform=ax2.transAxes, fontsize=8.3, color=SECONDARY,
              va='bottom', bbox=dict(boxstyle='round,pad=0.35',
                                     facecolor=SURFACE, edgecolor=GRID,
                                     alpha=0.95))
 
     indiv_handle = Line2D([0], [0], color=INDIVIDUAL, lw=0.9,
-                          label='个体 agent（n=10）')
+                          label=f'个体 agent（n={len(individual)}）')
     mean_handle = Line2D([0], [0], color=PANIC, lw=2.4, label='全网均值')
     ax2.legend(handles=[indiv_handle, mean_handle], loc='lower right',
                frameon=False, fontsize=8.5)
 
     ax2.set_ylim(0, 1.0)
-    ax2.set_xlim(0.5, 17.2)
+    ax2.set_xlim(0.5, days[-1] + 0.5)
     ax2.set_ylabel('恐慌指数（0–1）', fontsize=10, color=SECONDARY)
-    ax2.set_title('B. 个体恐慌轨迹（10 个 agent 均净上升）', loc='left',
+    ax2.set_title('B. 个体恐慌轨迹', loc='left',
                   fontsize=11.5, fontweight='bold', color=INK, pad=8)
     ax2.grid(True, color=GRID, lw=0.8, alpha=0.85)
     ax2.set_axisbelow(True)
@@ -236,8 +236,7 @@ def main():
             ax.spines[sp].set_linewidth(0.8)
 
     fig.text(0.01, 0.018,
-             '注：本图只包含时效性机制重演（replay，政府不介入）的仿真输出，'
-             '不含真实数据或基线对比。',
+             '注：本图只包含仿真输出，不含真实数据或基线对比。',
              fontsize=7.5, color=SECONDARY)
     fig.text(0.01, 0.003,
              '曲线为仿真内部状态，'

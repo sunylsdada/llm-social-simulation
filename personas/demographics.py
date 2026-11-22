@@ -1,12 +1,12 @@
-"""Deterministic demographic sampling for agent profiles.
+"""网民画像的确定性人口学采样。
 
-These priors are defaults only. An event can override them in ``event.json``
-under ``demographics.age_bands`` / ``demographics.gender_weights``.
+这里只是默认先验；事件可以在 ``event.json`` 的
+``demographics.age_bands`` / ``demographics.gender_weights`` 中覆盖。
 """
 
 import random
 
-# (lower age, upper age, weight)
+# (年龄下限, 年龄上限, 权重)
 AGE_BANDS = [
     (18, 29, 0.42),
     (30, 49, 0.32),
@@ -18,10 +18,9 @@ GENDER_WEIGHTS = [("Male", 0.63), ("Female", 0.37)]
 
 
 def sample_age_gender(uid: int, age_bands=None, gender_weights=None) -> tuple:
-    """Sample age/gender deterministically from ``uid``.
+    """根据 ``uid`` 确定性采样年龄/性别。
 
-    The same uid always yields the same result, so re-running a pipeline does
-    not change the agent population.
+    同一个 uid 永远得到相同结果，重跑流水线不会改变网民人口构成。
     """
     rng = random.Random(uid * 7919)
     bands = age_bands or AGE_BANDS

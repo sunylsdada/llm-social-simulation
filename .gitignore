@@ -1,4 +1,4 @@
-# Python
+# Python 缓存
 __pycache__/
 *.py[cod]
 *.pyo
@@ -7,18 +7,18 @@ venv/
 .env
 .env.*
 
-# IDE
+# IDE 配置
 .idea/
 .vscode/
 
-# Private / legacy data locations (defensive)
+# 私有/旧数据目录（保护性忽略）
 data/
 outputs/
 backups/
 archive/
 scraped/
 
-# Event generated artifacts
+# 事件生成物
 events/*/input/comments.csv
 events/*/input/raw_comments.csv
 !events/_template/input/raw_comments.csv
@@ -30,7 +30,7 @@ events/*/outputs/
 events/*/source/
 events/*/MIGRATION_MANIFEST.json
 
-# Documents and binaries
+# 文档和二进制文件
 *.pdf
 *.pptx
 *.docx

@@ -156,15 +156,15 @@ class GovernmentAgent:
             'avg_trust': analyst_report['quantitative']['avg_trust'],
         }
 
-        # Step 1: 态势回顾 — 对比上次策略的预测 vs 实际
+        # 第一步：态势回顾 — 对比上次策略的预测 vs 实际
         history_section = self._build_history_section(previous_snapshot, current_snapshot)
 
-        # Step 2 & 3: LLM 态势评估 + 权重分配
+        # 第二、三步：LLM 态势评估 + 权重分配
         prompt = self._build_decision_prompt(analyst_report, day, history_section)
         result = self.llm.fast_run(prompt)
         decision = self._parse_decision(result)
 
-        # Step 4: 效用矩阵选策略
+        # 第四步：效用矩阵选策略
         weights = decision.get('weights', {
             'panic_prevention': 0.33,
             'rumor_containment': 0.33,
@@ -178,7 +178,7 @@ class GovernmentAgent:
         decision['weights'] = weights
         decision['predicted_effect'] = predicted_effect
 
-        # Step 5: 记录到记忆链
+        # 第五步：记录到记忆链
         self.memory.append({
             'day': day,
             'strategy': best_strategy,

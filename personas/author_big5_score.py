@@ -8,7 +8,7 @@
 
 输出：events/<id>/interim/author_big5.jsonl（追加式缓存，key = 作者名）
 
-Usage:
+用法：
     python -m personas.author_big5_score --event demo --pilot 20
     python -m personas.author_big5_score --event demo
     python -m personas.author_big5_score --event demo --report

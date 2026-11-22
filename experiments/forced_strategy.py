@@ -1,7 +1,7 @@
-"""A Simulator variant that forces one strategy for the whole run.
+"""强制使用单一策略的 Simulator 变体。
 
-Used by ``strategy_effect_pilot.py`` to compare S1-S5 from the same initial
-state without invoking the government decision model.
+``strategy_effect_pilot.py`` 用它从同一初始状态比较 S1–S5，
+不调用政府决策模型。
 """
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -11,7 +11,7 @@ from simulation.infra.utils import is_agent_active_today
 
 
 class ForcedStrategySimulator(Simulator):
-    """Run the normal simulation loop but force ``force_strategy`` every day."""
+    """运行正常仿真循环，但每天都强制使用 ``force_strategy``。"""
 
     def __init__(self, config, llm, recorder, checkpoint, force_strategy, logger=None):
         super().__init__(config, llm, recorder, checkpoint, logger=logger)
@@ -20,18 +20,18 @@ class ForcedStrategySimulator(Simulator):
     def run(self):
         for day in range(1, self.total_days + 1):
             self.logger.phase(
-                f"Day {day}/{self.total_days}  forced strategy={self.force_strategy}")
+                f"第 {day}/{self.total_days} 天  强制策略={self.force_strategy}")
 
             if day in self.decision_days:
                 self.current_strategy = self.force_strategy
-                self.logger.log(f"Forced strategy: {self.force_strategy}")
+                self.logger.log(f"强制策略: {self.force_strategy}")
                 self.social_media.execute_decision_day_action(
                     day, self.force_strategy, llm=self.llm)
                 self.recorder.add_record("GOVERNMENT", {
                     "day": day,
                     "selected_strategy": self.force_strategy,
                     "weights": {"forced": True},
-                    "situation_assessment": f"forced strategy {self.force_strategy}",
+                    "situation_assessment": f"强制策略 {self.force_strategy}",
                 })
 
             activity_prob = self.global_config["agent_config"]["activity_prob"]
@@ -54,7 +54,7 @@ class ForcedStrategySimulator(Simulator):
                         try:
                             action_type, content_info, action_record = future.result()
                         except Exception as e:  # noqa: BLE001
-                            self.logger.log(f"Agent{agent.aid} error: {e}", "ERROR")
+                            self.logger.log(f"Agent{agent.aid} 出错: {e}", "ERROR")
                             action_type = "silent"
                             content_info = {"type": "silent"}
                             action_record = {}
@@ -80,7 +80,7 @@ class ForcedStrategySimulator(Simulator):
                     })
 
             self.logger.log(
-                f"Day{day} active={len(active_agents)}/{len(self.agents)}", "STAT")
+                f"第{day}天 活跃={len(active_agents)}/{len(self.agents)}", "STAT")
             self.social_media.execute_daily_intervention(day)
             snapshot = self.social_media.get_snapshot(day, self.agents)
             self.recorder.add_record("DAILY_SNAPSHOT", snapshot)
@@ -92,4 +92,4 @@ class ForcedStrategySimulator(Simulator):
         final_snapshot = self.social_media.get_snapshot(
             self.total_days, self.agents)
         self.recorder.add_record("META", {"final_snapshot": final_snapshot})
-        self.logger.phase("Forced-strategy run complete")
+        self.logger.phase("强制策略运行完成")

@@ -1,1 +1,1 @@
-"""Build agent personas from event comment corpora."""
+"""从事件评论文本构建网民 agent 画像。"""

@@ -15,7 +15,7 @@ SEP = '；'          # U+FF1B
 ASCII_SEP = ';'     # 归一化时也会接受
 
 # ============================================================================
-# user.csv columns
+# user.csv 列
 # ============================================================================
 
 USER_COLUMNS = ['uid', 'name', 'age', 'gender', 'big_five', 'activity']
@@ -72,7 +72,7 @@ INT_FIELDS = ['on_topic', 'tacitus']
 
 
 def phase_of(published: str, phase_boundaries) -> str:
-    """Map a published timestamp to a phase using explicit (id, cutoff) pairs."""
+    """根据显式的 (阶段 id, 截止日期) 把评论发布时间映射到阶段。"""
     if not phase_boundaries:
         return 'P1'
     d = (published or '')[:10]
@@ -132,7 +132,7 @@ def validate_user_row(row: dict) -> None:
     if uid < 1:
         raise SchemaError(f'uid 必须 >= 1，得到 {uid}')
 
-    # name / age / gender
+    # 姓名 / 年龄 / 性别
     if not str(row['name']).strip():
         raise SchemaError('name 不能为空')
     try:

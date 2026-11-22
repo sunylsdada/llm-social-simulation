@@ -1,11 +1,11 @@
-"""Seat allocation helpers (largest remainder / Hamilton method)."""
+"""席位分配工具（最大余数法 / Hamilton 法）。"""
 
 
 def largest_remainder(total: int, weights: list, floor: int = 1) -> list:
-    """Allocate exactly ``total`` seats proportionally to ``weights``.
+    """按 ``weights`` 比例分配恰好 ``total`` 个席位。
 
-    Each item gets at least ``floor`` where possible. If ``total`` is smaller
-    than the number of items, ``floor`` is lowered automatically.
+    每项尽量至少得到 ``floor`` 个席位；如果 ``total`` 小于项目数，
+    会自动降低 ``floor``。
     """
     k = len(weights)
     if k == 0:

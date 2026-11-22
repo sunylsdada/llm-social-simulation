@@ -1,5 +1,5 @@
 """
-Generate first-day panic/trust/rumor from agent profiles with an LLM.
+用 LLM 根据网民画像生成事件第 1 天的 panic / trust / rumor。
 
 输出
 ----
@@ -20,14 +20,13 @@ Generate first-day panic/trust/rumor from agent profiles with an LLM.
 反推的，不是数据估计。直接让模型根据画像生成三个值更直观，也去掉了
 “BASE 怎么来的”这一层解释负担。
 
-⚠️ Calls the LLM. Run --pilot first to validate the output format.
+⚠️ 会调用 LLM。先用 --pilot 验证输出格式。
 
-用法:
-    python personas/generate_initial_states.py --pilot 3
-    python personas/generate_initial_states.py
-    python personas/generate_initial_states.py --report
+用法：
+    python -m personas.generate_initial_states --event demo --pilot 3
     python -m personas.generate_initial_states --event demo
-    python personas/generate_initial_states.py --reset-cache   # 换模型时用
+    python -m personas.generate_initial_states --event demo --report
+    python -m personas.generate_initial_states --event demo --reset-cache
 """
 
 import argparse

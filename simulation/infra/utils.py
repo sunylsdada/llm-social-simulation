@@ -268,7 +268,7 @@ def is_agent_active_today(activity_level, activity_prob):
 
 
 # ============================================================
-# Checkpoint
+# 断点续跑
 # ============================================================
 
 class Checkpoint:

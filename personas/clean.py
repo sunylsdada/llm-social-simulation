@@ -1,10 +1,10 @@
-"""Deterministic comment cleaning for an event package.
+"""事件包的确定性评论清洗。
 
-Input:  ``events/<id>/input/comments.csv``
-Output: ``events/<id>/interim/comments_clean.csv``
+输入：``events/<id>/input/comments.csv``
+输出：``events/<id>/interim/comments_clean.csv``
 
-No LLM calls. Cleaning rules are configurable per event via
-``input.min_body_chars`` and ``input.bad_authors``.
+不调用 LLM。清洗规则可通过事件配置的
+``input.min_body_chars`` 和 ``input.bad_authors`` 调整。
 """
 
 import argparse
@@ -44,7 +44,7 @@ def normalize_body(body: str) -> str:
 
 
 def load_canonical(path: Path) -> list:
-    """Read the canonical single-file comment table."""
+    """读取规范评论表。"""
     rows = []
     with open(path, 'r', encoding='utf-8-sig', newline='') as f:
         for r in csv.DictReader(f):
@@ -112,12 +112,12 @@ def report(rows: list, phases) -> None:
     phase_counts = Counter(r['phase'] for r in rows)
     channels = Counter(r['subreddit'] for r in rows)
 
-    print(f'valid comments: {len(rows)}  authors: {len(authors)}')
-    print('  source: ' + ', '.join(
+    print(f'有效评论: {len(rows)}  有效作者: {len(authors)}')
+    print('  来源: ' + ', '.join(
         f'{k}={v}' for k, v in Counter(r['source'] for r in rows).most_common()))
     for p in phases:
         print(f'  {p}: {phase_counts.get(p, 0):4d}')
-    print('  channels: ' + ', '.join(
+    print('  渠道: ' + ', '.join(
         f'{s}={n}' for s, n in channels.most_common(10)))
 
 
@@ -128,8 +128,8 @@ def main():
         except Exception:
             pass
 
-    ap = argparse.ArgumentParser(description='Clean comments for an event package')
-    ap.add_argument('--event', default='demo', help='Event id (default: demo)')
+    ap = argparse.ArgumentParser(description='清洗事件包评论')
+    ap.add_argument('--event', default='demo', help='事件 ID（默认 demo）')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args()
 

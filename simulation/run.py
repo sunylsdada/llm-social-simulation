@@ -1,7 +1,7 @@
-"""Simulation entry point.
+"""仿真主入口。
 
-Usage:
-    python -m simulation.run                      # runs events/demo
+用法：
+    python -m simulation.run                      # 运行 events/demo
     python -m simulation.run --event my_event
     python -m simulation.run --event my_event --dry-run
     python -m simulation.run --event my_event --run-id pilot --days 2
@@ -107,7 +107,7 @@ def dry_run(cfg):
 
     sample = mech.get_reflection_prompt(
         agents[0], '（dry-run）', '（dry-run 信息流）', current_day=1)
-    print(f"反思 prompt 长度: {len(sample)} chars")
+    print(f"反思 prompt 长度: {len(sample)} 字符")
     ctx = cfg.get('event_context') or {}
     print(f"事件名: {ctx.get('event_name')}")
     print('===========================\n')

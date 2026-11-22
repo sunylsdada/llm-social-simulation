@@ -1,8 +1,78 @@
-# Architecture
+# 架构设计
 
-## Event package contract
+本文说明框架的整体结构、模块职责、数据流和运行流程。面向想阅读源码、扩展机制或排查问题的使用者。
 
-An event is a directory:
+## 一、总体定位
+
+这是一个“事件包驱动”的社会舆情仿真框架：
+
+- 每个事件是一个独立目录，包含评论数据、每日刺激源和事件配置；
+- 画像流水线把评论转成网民 agent；
+- 仿真核心按天运行 agent、政府和分析师；
+- 验证工具把仿真结果与评论侧的情绪曲线做形态对比；
+- 所有缓存、结果、日志都写在事件目录内，不跨事件共享。
+
+它**不是**一个开箱即用的舆情预测系统，也不是一个已经标定好政府策略效用的研究结论。效用矩阵默认全为 0，必须按事件做反事实实验后再使用。
+
+## 二、分层结构
+
+```text
+输入层
+  comments.csv / stimuli.csv / event.json
+        │
+        ▼
+事件层
+  simulation/infra/event.py
+  读取配置、校验路径、解析事件上下文
+        │
+        ▼
+画像层
+  personas/import_event.py
+  personas/clean.py
+  personas/score.py
+  personas/author_big5_score.py
+  personas/build_agents_author.py
+  personas/generate_initial_states.py
+        │
+        ▼
+仿真层
+  simulation/core/environment.py
+  agent.py / government.py / post_pool.py / mechanism.py
+        │
+        ▼
+记录与验证层
+  simulation/infra/recorder.py
+  experiments/negative_emotion_daily.py
+  experiments/compare_replay_vs_real.py
+  experiments/plot_*.py
+```
+
+## 三、目录与模块职责
+
+| 模块 | 职责 |
+|---|---|
+| `simulation/infra/event.py` | 事件配置读取、路径解析、配置注入、事件校验、配置脱敏 |
+| `simulation/infra/config.py` | 全局默认配置；事件配置会覆盖其中的运行相关字段 |
+| `simulation/infra/llm.py` | OpenAI 兼容接口、Anthropic 接口的 LLM 适配 |
+| `simulation/infra/fake_llm.py` | 确定性假 LLM，用于无网络测试 |
+| `simulation/infra/logger.py` | 主日志、agent 日志、LLM 请求/响应日志 |
+| `simulation/infra/recorder.py` | 记录每日快照、政府决策、agent 行动，写出 `record.json` |
+| `simulation/core/agent.py` | 网民 agent 的感知、行动、反思和状态更新 |
+| `simulation/core/environment.py` | 主循环、每日调度、策略执行、快照 |
+| `simulation/core/government.py` | 舆情分析师、政府决策、效用矩阵和记忆 |
+| `simulation/core/post_pool.py` | 帖子、评论树、热度、信息流采样 |
+| `simulation/core/mechanism.py` | 所有 agent prompt 与信息流摘要 |
+| `personas/import_event.py` | 把用户 CSV 导入为规范评论表 |
+| `personas/clean.py` | 确定性清洗、阶段归属 |
+| `personas/score.py` | 逐条评论 LLM 打分 |
+| `personas/author_big5_score.py` | 作者级大五人格标注 |
+| `personas/build_agents_author.py` | 席位分配，生成 `user.csv` |
+| `personas/generate_initial_states.py` | 生成第 1 天的 panic/trust/rumor |
+| `personas/prepare_stimulus.py` | 校验刺激源并生成 `post.csv` |
+| `personas/validate_event.py` | 事件包静态校验 |
+| `experiments/` | 验证曲线、形态对比、绘图、策略预检、事件编排 |
+
+## 四、事件包
 
 ```text
 events/<event_id>/
@@ -14,127 +84,250 @@ events/<event_id>/
   interim/
   processed/
   outputs/
+    runs/<run_id>/
+    figures/
 ```
 
-`event.json` is the single source of truth for:
+`event.json` 是事件的唯一配置来源，主要字段：
 
-- the time window and phase boundaries;
-- decision days and seat count;
-- the input column mapping and time formats;
-- platform, language, and prompt context;
-- validation variants and minimum daily sample size;
-- optional demographic priors.
+| 字段 | 含义 |
+|---|---|
+| `event_id` | 必须与目录名一致 |
+| `name` / `language` / `platform` | 展示名、语言、平台 |
+| `timezone` / `utc_offset` | 日期归属使用的时区 |
+| `window` | 起止日期与总天数 |
+| `phases` | 阶段 id、名称、起止天 |
+| `simulation` | 决策日、席位数、模式、干预时序等 |
+| `input` | 评论/刺激源路径、列名映射、时间格式、清洗参数 |
+| `prompts` | 事件名、事件描述、官方机构、转移话题方向等 |
+| `scoring` | 是否启用党派/阵营字段、archetype 覆盖 |
+| `keywords` | 删帖/限流使用的关键词 |
+| `demographics` | 年龄/性别先验 |
+| `validation` | 每日最小样本量、验证变体 |
 
-`simulation.infra.event.load_event()` validates the descriptor and
-`event_paths()` resolves every path. `build_config()` deep-copies the base config
-and injects event-local paths, so two events cannot share caches or outputs.
+## 五、数据流
 
-## Inputs
-
-`input/comments.csv` is the canonical comment table produced by
-`personas/import_event.py`:
+### 5.1 评论侧
 
 ```text
-comment_id, author, body, published, published_date, post_id, post_title,
-parent_id, depth, channel, source, likes, source_file
+raw_comments.csv
+  → import_event：列名映射、日期解析、去重、父评论重映射
+  → input/comments.csv
+  → clean：长度/作者/链接过滤、阶段归属
+  → interim/comments_clean.csv
+  → score：逐条 LLM 打分
+  → interim/comment_scores.jsonl
+  → author_big5_score：作者级大五
+  → interim/author_big5.jsonl
+  → build_agents_author：席位分配
+  → processed/user.csv
+  → generate_initial_states：第 1 天三项状态
+  → processed/initial_states.csv
 ```
 
-`published` is timezone-aware; `published_date` is the local date used for phase
-assignment. `input/stimuli.csv` is the daily timeline:
+### 5.2 刺激源侧
 
 ```text
-day, real_date, stimulus_type, title, news_content, source
+stimuli.csv
+  → prepare_stimulus：校验天数、类型
+  → processed/post.csv
 ```
 
-`stimulus_type` is `fact`, `gov_comm`, or `new_topic`. In `counterfactual` mode,
-`gov_comm` rows are skipped because the simulated government produces its own
-communication.
+### 5.3 仿真侧
 
-## Persona pipeline
+```text
+processed/user.csv
+processed/initial_states.csv
+processed/post.csv
+  → simulation.run
+  → outputs/runs/<run_id>/record.json
+  → outputs/runs/<run_id>/simulation*.log
+```
 
-1. `import_event` maps columns, parses dates, deduplicates IDs, remaps parent
-   IDs, filters to the event window, and writes an import report.
-2. `clean` applies deterministic text rules and writes
-   `interim/comments_clean.csv`.
-3. `score` calls the LLM per comment and appends to
-   `interim/comment_scores.jsonl`.
-4. `author_big5_score` asks the LLM for one label set per author and appends to
-   `interim/author_big5.jsonl`.
-5. `build_agents_author` allocates seats by label weight and writes
-   `processed/user.csv`.
-6. `generate_initial_states` asks the LLM for first-day panic/trust/rumor and
-   writes `processed/initial_states.csv`.
-7. `prepare_stimulus` validates `input/stimuli.csv` and writes
-   `processed/post.csv`.
+### 5.4 验证侧
 
-All append-only caches live in the event's `interim/` directory. Re-running a
-free step is safe; paid steps reuse cached records.
+```text
+interim/comments_clean.csv + comment_scores.jsonl
+  → negative_emotion_daily：日度负面情绪
+  → processed/negative_emotion_daily.csv/.json
 
-## Simulation loop
+processed/negative_emotion_daily.csv + record.json
+  → compare_replay_vs_real：归一化形态对比
+  → outputs/analysis/<run_id>/replay_vs_real.json/.png
+```
 
-`simulation/core/environment.py` runs one day at a time:
+## 六、运行流程
 
-1. On decision days, the analyst agent summarizes the day and the government
-   agent allocates weights and selects a strategy.
-2. Agents that are active today receive a personal information flow.
-3. Each agent chooses an action, produces content if needed, then reflects and
-   updates panic/trust/rumor.
-4. Actions are written back in `aid` order for reproducibility.
-5. Strategy actions run before or after agent browsing depending on
-   `intervention_timing` (`split` or `post`).
-6. The day's snapshot is recorded.
+### 6.1 免费流程
 
-The information flow groups posts into:
-- today's latest event updates;
-- today's other content;
-- recent background;
-- outdated background.
+```bash
+python -m personas.import_event --event <id>
+python -m personas.clean --event <id>
+python -m personas.build_agents_author --event <id>
+python -m personas.prepare_stimulus --event <id>
+python -m personas.validate_event --event <id> --strict
+```
 
-Reflection prompts require the agent to state which latest/outdated post IDs it
-relied on. This is audited in `record.json`.
+也可以一条命令：
 
-## Prompt context
+```bash
+python -m personas.pipeline --event <id> --stage free
+```
 
-`personas/prompts.py` builds prompts from the event context:
+### 6.2 付费流程
 
-- platform and language;
-- event name and description;
-- the responsible official body;
-- optional partisan/polarization field;
-- the archetype taxonomy.
+```bash
+python -m personas.pipeline --event <id> --only score --pilot 20 --yes-paid
+python -m personas.pipeline --event <id> --only score --yes-paid
 
-There are no built-in case-specific prompts. The same code runs for Chinese or
-English events by changing `event.json`.
+python -m personas.pipeline --event <id> --only author_big5 --pilot 20 --yes-paid
+python -m personas.pipeline --event <id> --only author_big5 --yes-paid
 
-## Fake LLM
+python -m personas.pipeline --event <id> --only build_agents_author
+python -m personas.pipeline --event <id> --only initial_states --pilot 3 --yes-paid
+python -m personas.pipeline --event <id> --only initial_states --yes-paid
+```
 
-`simulation/infra/fake_llm.py` returns deterministic, format-correct outputs for
-actions, comments, reflections, government decisions, and analyst briefs.
-`simulation.run --llm-type fake` therefore runs the whole loop without network
-access. This is intended for tests and smoke checks, not research results.
+### 6.3 仿真
 
-## Generated vs committed files
+```bash
+# 只加载数据与 prompt，不调用 LLM
+python -m simulation.run --event <id> --run-id pilot --days 2 --dry-run
 
-Committed:
+# 历史重演
+python -m simulation.run --event <id> --run-id baseline --stimulus-mode replay
 
-- `event.json`;
-- `events/_template/input/*`;
-- `events/demo/input/*` and `events/demo/interim/author_big5.jsonl`;
-- all code, docs, and tests.
+# 反事实策略实验
+python -m simulation.run --event <id> --run-id cf --stimulus-mode counterfactual
+```
 
-Ignored:
+### 6.4 验证与出图
 
-- imported `comments.csv`;
-- cleaning/scores/initial-state caches (except the demo author cache);
-- `processed/`;
-- `outputs/`;
-- logs and figures.
+```bash
+python -m experiments.run_event --event <id> --mode validate
+python -m experiments.run_event --event <id> --mode compare --run-id baseline
 
-## Security hygiene
+python -m experiments.plot_simulation_results --event <id> --run-id baseline
+python -m experiments.plot_panic_normalized --event <id> --run-id baseline
+python -m experiments.plot_agent_personality --event <id>
+```
 
-- API keys come from environment variables only.
-- `sanitize_config()` replaces key fields before writing `record.json`.
-- The release test scans for key-like tokens, private paths, paper materials, and
-  case-specific strings.
-- If a secret is ever committed, delete the repository and rebuild it rather than
-  trying to hide it in a later commit.
+## 七、仿真循环
+
+`Simulator.run()` 逐日执行：
+
+1. **决策日**：分析师生成简报，政府分配目标权重，按效用矩阵选择 S1–S5 之一。
+2. **策略动作**：按 `intervention_timing` 在 agent 浏览前或浏览后执行。
+3. **信息流**：每个 agent 获得最多 5 条帖子；当天新刺激源和政府通告置顶。
+4. **行动**：agent 选择评论、回复、赞踩、转发或沉默。
+5. **反思**：agent 根据最新消息和自身行动更新 panic/trust/rumor。
+6. **写回**：行动按 `aid` 排序后写入帖子池，保证可复现。
+7. **快照**：记录当天均值、帖子数、评论数等。
+
+### 7.1 三个动态状态
+
+- `panic`：对事件和自身处境的恐惧程度；
+- `government_trust`：对负责处置的官方机构的信任；
+- `rumor_susceptibility`：对未经证实信息的轻信与转发倾向。
+
+反思后的值会向 agent 自身基线做小幅回归，避免长跑中单向漂移。
+
+### 7.2 信息时效性
+
+信息流按最后更新日分为四组：
+
+| 分组 | 用途 |
+|---|---|
+| 今日最新消息 | 唯一可以作为状态变化新依据的信息 |
+| 今日其他内容 | 当天发布但与事件进展无关，只作浏览背景 |
+| 近期信息 | 未超过时效阈值，可作背景 |
+| 已过时信息 | 超过时效阈值，只作背景，不得作为状态变化依据 |
+
+agent 的反思输出会记录它认为哪些 pid 是最新、哪些已过时，写入 `record.json` 便于审计。
+
+### 7.3 政府策略
+
+| 策略 | 动作 |
+|---|---|
+| S1 沉默观望 | 不主动介入 |
+| S2 压制封堵 | 删除最负面的一批评论 |
+| S3 坦诚回应 | 发布/更新官方通告 |
+| S4 转移议程 | 注入无关正面话题，降低旧帖曝光 |
+| S5 组合应对 | 简短声明 + 删除极端评论 |
+
+政府决策基于三个目标的加权效用：防恐慌、遏谣言、建信任。效用矩阵按事件从 `processed/utility_matrix.json` 读取；没有文件时全为 0，此时政府会默认选 S1，这只是占位。
+
+## 八、配置与路径解析
+
+- `simulation/infra/config.py` 提供全局默认值；
+- `simulation/infra/event.py` 的 `build_config()` 深拷贝默认配置，注入事件路径、天数、决策日、席位数、关键词、效用矩阵；
+- `event_paths()` 把所有输入/缓存/输出路径解析到事件目录内，拒绝路径穿越；
+- `sanitize_config()` 在写入 `record.json` 前移除 API key。
+
+因此同一进程内顺序运行多个事件时，只要每次都调用 `build_config()`，不会共享缓存或输出。
+
+## 九、Prompt 设计
+
+prompt 由事件上下文生成，不写死具体案例：
+
+- `event_name` / `event_description`；
+- `platform` / `language`；
+- `official_body`；
+- `scoring_fields.partisan` 决定是否要求党派/阵营字段；
+- archetype 分类默认 8 类，可由事件覆盖。
+
+公开版本不包含任何具体案例的旧 prompt；示例事件使用通用中文模板。
+
+## 十、可复现性
+
+- `simulation_config.seed` 固定 Python 随机过程；
+- 初始状态扰动、每日上线抽取、信息流随机抽样都受该种子影响；
+- agent 行动写回按 `aid` 排序，避免线程完成顺序影响结果；
+- LLM 采样本身仍是随机的，不能逐字节复现；正式实验应报告多个种子。
+
+## 十一、输出文件
+
+```text
+events/<id>/outputs/runs/<run_id>/
+  record.json
+  simulation.log
+  simulation_agents.log
+  simulation_llm.log
+```
+
+`record.json` 主要包含：
+
+- `meta_info`：事件 id、run id、种子、天数、agent 列表、初始状态；
+- `validation`：真实侧指标与仿真代理的说明；
+- `indicators`：panic/trust/rumor 曲线、负向情绪代理；
+- `government_trajectory`：政府决策轨迹；
+- `daily_snapshots`：每日均值与帖子统计；
+- `agent_actions`：逐条 agent 行动与反思记录。
+
+## 十二、FakeLLM
+
+`simulation/infra/fake_llm.py` 根据 prompt 关键词返回格式正确的固定输出：
+
+- 行动选择返回 `0`；
+- 评论返回固定短句；
+- 反思返回保持原状态的三项分数；
+- 政府决策返回合法 JSON；
+- 分析师返回合法简报。
+
+它只用于测试和冒烟，不能用于研究结果。
+
+## 十三、扩展点
+
+- 新平台/语言：改 `event.json` 的 `platform`、`language`、`prompts`；
+- 新分类体系：覆盖 `scoring.archetypes`；
+- 新事件时间线：只改 `stimuli.csv` 与 `window/phases`；
+- 新策略：在 `government_config`、`environment.execute_*`、效用矩阵中扩展；
+- 新验证指标：在 `negative_emotion_daily` / `phase_sentiment` 中增加 metric；
+- 新 LLM 提供商：实现 `simulation/infra/llm.py` 的适配类并在 `create_llm()` 注册。
+
+## 十四、安全与发布卫生
+
+- API key 只从环境变量读取；
+- `record.json` 中的配置已脱敏；
+- 发布测试会拒绝私有数据、研究材料、key 形式字符串和特定案例字符串；
+- 如果曾经提交过 secret，应删除仓库重建，不要用后续提交掩盖。

@@ -1,10 +1,9 @@
-"""
-Plot a min-max normalized simulation panic curve.
+"""绘制仿真恐慌指数的 min-max 归一化曲线。
 
 不读取真实数据，不做任何对比。
 
-用法:
-    python experiments/plot_panic_normalized.py
+用法：
+    python -m experiments.plot_panic_normalized --event demo --run-id baseline
 """
 
 import argparse
@@ -53,7 +52,7 @@ def main():
     global PHASES
     parser = argparse.ArgumentParser(description='只画归一化恐慌曲线')
     parser.add_argument('--event', default='demo',
-                        help='事件 ID；留空则用旧的 replay_small 默认路径')
+                        help='事件 ID（默认 demo）')
     parser.add_argument('--run-id', default='baseline')
     parser.add_argument('--record', default=None)
     parser.add_argument('--out', default=None)

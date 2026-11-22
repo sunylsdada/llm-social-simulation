@@ -1,14 +1,13 @@
-"""Prompt builders for comment scoring and persona labelling.
+"""评论打分与人格标注的 prompt 构造。
 
-All prompts are built from an event context dictionary (see
-``simulation.infra.event.event_context``), so the framework is not tied to a
-specific platform, language, or case study.
+所有 prompt 都从事件上下文字典生成（见
+``simulation.infra.event.event_context``），因此不绑定特定平台、语言或案例。
 """
 
 from personas.schema import ARCHETYPES
 
 # ============================================================================
-# 打分 rubric（system）
+# 打分规则（system）
 # ============================================================================
 
 _PLATFORM_LABELS = {
@@ -39,7 +38,7 @@ def _archetype_lines(ctx: dict) -> str:
 
 
 def build_scoring_system(ctx: dict | None = None) -> str:
-    """Return a generic scoring prompt built from the event context."""
+    """根据事件上下文生成通用评论打分 prompt。"""
     ctx = ctx or {}
 
     platform = _platform_label(ctx)
@@ -88,7 +87,7 @@ EVIDENCE: <一句话中文说明你的判断依据，不超过 60 字>
 
 
 def build_big5_system(ctx: dict | None = None) -> str:
-    """Return a generic single-comment Big Five prompt."""
+    """生成通用的单条评论大五人格 prompt。"""
     ctx = ctx or {}
 
     platform = _platform_label(ctx)
@@ -111,7 +110,7 @@ EVIDENCE: <一句话说明依据，不超过 40 字>"""
 
 
 def build_author_big5_system(ctx: dict | None = None) -> str:
-    """Return a generic author-level Big Five prompt."""
+    """生成通用的作者级大五人格 prompt。"""
     ctx = ctx or {}
 
     platform = _platform_label(ctx)

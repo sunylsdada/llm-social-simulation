@@ -4,10 +4,10 @@
 
 ⚠️ 会真实调用 LLM（花钱）。默认只跑 1 天以最小化花费。
 
-用法:
-    python experiments/smoke_test.py                 # 1 天
-    python experiments/smoke_test.py --days 2        # 2 天（会走到决策日+反思）
-    python experiments/smoke_test.py --dry-run       # 只验证加载与初始化，不调 LLM
+用法：
+    python -m experiments.smoke_test --event demo
+    python -m experiments.smoke_test --event demo --days 2
+    python -m experiments.smoke_test --event demo --dry-run
 """
 
 import argparse

@@ -1,4 +1,4 @@
-"""Release hygiene checks: no private data, no case-specific claims, no keys."""
+"""发布卫生检查：不包含私有数据、特定案例声明或 key。"""
 
 import re
 import sys
@@ -17,7 +17,7 @@ GENERATED_PARTS = {"outputs", "processed"}
 MAX_FILE = 250 * 1024
 MAX_TOTAL = 2 * 1024 * 1024
 
-# Build fragments so this test file does not match itself.
+# 用拼接片段构造敏感词，避免测试文件匹配到自己。
 FRAGMENTS = [
     "东" + "巴勒斯坦", "俄" + "亥俄", "East " + "Palestine", "Oh" + "io",
     "12" + "27", "13" + "67", "16" + "78", "6" + "18", "19" + "50",
@@ -51,16 +51,16 @@ def _iter_files():
 class ReleaseHygieneTest(unittest.TestCase):
     def test_no_forbidden_directories(self):
         for rel in FORBIDDEN_DIRS:
-            self.assertFalse((ROOT / rel).exists(), f"forbidden path: {rel}")
+            self.assertFalse((ROOT / rel).exists(), f"出现禁止路径: {rel}")
 
     def test_no_binary_or_large_files(self):
         total = 0
         for p in _iter_files():
             self.assertNotIn(p.suffix.lower(), FORBIDDEN_EXT, str(p))
             size = p.stat().st_size
-            self.assertLessEqual(size, MAX_FILE, f"file too large: {p}")
+            self.assertLessEqual(size, MAX_FILE, f"文件过大: {p}")
             total += size
-        self.assertLessEqual(total, MAX_TOTAL, f"release too large: {total}")
+        self.assertLessEqual(total, MAX_TOTAL, f"发布目录过大: {total}")
 
     def test_no_forbidden_strings(self):
         pieces = FRAGMENTS
@@ -70,8 +70,8 @@ class ReleaseHygieneTest(unittest.TestCase):
                 continue
             text = p.read_text(encoding="utf-8", errors="replace")
             for piece in pieces:
-                self.assertNotIn(piece, text, f"{piece!r} found in {p}")
-            self.assertIsNone(key_re.search(text), f"key-like token in {p}")
+                self.assertNotIn(piece, text, f"{piece!r} 出现在 {p}")
+            self.assertIsNone(key_re.search(text), f"{p} 中出现类似 key 的字符串")
 
     def test_demo_files_exist(self):
         for rel in (

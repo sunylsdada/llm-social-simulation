@@ -22,6 +22,51 @@ cp -r events/_template events/my_event
 - `keywords.panic/negative` 换成该事件语料里真正出现的词；
 - `input.column_map` 把中文列名映射到规范字段。
 
+### event.json 关键字段
+
+| 字段 | 必填 | 说明 |
+|---|---|---|
+| `event_id` | 是 | 必须与目录名一致，只能包含小写字母、数字、`-`、`_` |
+| `name` | 是 | 事件展示名 |
+| `language` | 建议 | `zh` / `en` / `mixed`，影响 prompt 语言 |
+| `platform` | 建议 | `weibo` / `douyin` / `xiaohongshu` / `reddit` 等 |
+| `timezone` / `utc_offset` | 是 | 日期归属使用的时区 |
+| `window.start/end/total_days` | 是 | 事件自然日窗口 |
+| `phases` | 是 | 阶段 id、名称、起止天，必须连续覆盖 1..total_days |
+| `simulation.decision_days` | 是 | 政府做决策的天数 |
+| `simulation.seats` | 是 | 网民 agent 数量 |
+| `simulation.allow_fewer_seats` | 否 | 作者不足时是否自动缩减席位 |
+| `simulation.intervention_timing` | 否 | `split`（浏览前后分开执行）或 `post` |
+| `simulation.strict_comment_targets` | 否 | 回复是否严格要求挂在目标评论所在帖子 |
+| `input.comments` | 是 | 规范评论表路径，通常是 `input/comments.csv` |
+| `input.stimuli` | 是 | 刺激源路径，通常是 `input/stimuli.csv` |
+| `input.column_map` | 是 | 原始 CSV 列名到规范字段的映射 |
+| `input.time_formats` | 否 | 额外时间格式 |
+| `input.min_body_chars` | 否 | 最短正文长度，中文建议 8–10 |
+| `input.bad_authors` | 否 | 需要剔除的作者名 |
+| `prompts.event_description` | 是 | 事件背景，进入初始状态与官方通告 prompt |
+| `prompts.official_body` | 是 | 负责处置的官方机构 |
+| `scoring.fields.partisan` | 否 | 是否要求党派/阵营字段 |
+| `keywords.panic/negative` | 建议 | S2/S5 删除评论时使用的关键词 |
+| `validation.min_n_per_day` | 否 | 每日最少评论数，低于该值不参与归一化 |
+
+### 运行流程总览
+
+```text
+原始评论
+  → import_event（列名映射、日期解析、去重）
+  → clean（清洗、阶段归属）
+  → score（逐条 LLM 打分）
+  → author_big5_score（作者级大五）
+  → build_agents_author（席位分配、user.csv）
+  → generate_initial_states（第 1 天三项状态）
+  → prepare_stimulus（post.csv）
+  → validate_event（校验）
+  → simulation.run（逐日仿真）
+  → negative_emotion_daily / phase_sentiment（真实侧曲线）
+  → compare_replay_vs_real / plot_*（对比与出图）
+```
+
 ## 1. 放入评论 CSV
 
 把原始评论放到：

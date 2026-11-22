@@ -64,7 +64,7 @@ def _read_rows(path: Path, encoding: str | None) -> list[dict]:
 
 
 def _field_map(header: list[str], column_map: dict) -> dict:
-    """canonical -> 实际列名；大小写不敏感，找不到返回 None。"""
+    """规范字段 -> 实际列名；大小写不敏感，找不到返回 None。"""
     lower = {str(h).strip().lower(): h for h in header}
     out = {}
     for canonical, aliases in column_map.items():

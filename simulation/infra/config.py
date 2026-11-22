@@ -1,8 +1,8 @@
-"""Base configuration for the simulation framework.
+"""仿真框架的基础配置。
 
-Event packages override the values here through ``simulation.infra.event``.
-Every run should be built with ``build_config(event_id, ...)`` rather than by
-editing this module.
+事件包通过 ``simulation.infra.event`` 覆盖这里的默认值。
+每次运行都应调用 ``build_config(event_id, ...)`` 生成独立配置，
+不要直接修改本模块。
 """
 
 import os
@@ -32,18 +32,17 @@ CONFIG = {
     },
 
     "stimulus_config": {
-        # replay: load fact + gov_comm; counterfactual: load fact only.
+        # replay：加载事实 + 历史官方表态；counterfactual：只加载事实。
         "mode": "replay",
     },
 
     "agent_config": {
         "activity_prob": {"High": 1.0, "Middle": 0.7, "Low": 0.4},
-        # Heuristic ranges used only when an agent has no generated initial state
-        # and no Big Five labels.
+        # 仅当 agent 既没有生成的初始状态、也没有大五标签时使用的启发式范围。
         "initial_panic": [0.1, 0.3],
         "initial_trust": [0.3, 0.7],
         "initial_rumor": [0.2, 0.5],
-        # Pull each reflected value slightly toward the agent's own baseline.
+        # 每次反思后的值向 agent 自身基线做小幅回归。
         "affect_reversion": 0.06,
         "initial_noise": 0.03,
         "max_posts_per_agent": 5,
@@ -53,7 +52,7 @@ CONFIG = {
     },
 
     "strategy_config": {
-        # [panic_prevention, rumor_containment, long_term_trust]
+        # [防恐慌, 遏谣言, 建信任]
         "utility_matrix": {
             "S1": [0.0, 0.0, 0.0],
             "S2": [0.0, 0.0, 0.0],
@@ -70,21 +69,21 @@ CONFIG = {
     "government_config": {
         "objectives": {
             "panic_prevention": {
-                "name": "Prevent panic",
-                "description": "Contain extreme emotion and secondary harms.",
+                "name": "防止社会恐慌扩散",
+                "description": "遏制极端情绪蔓延，减少次生伤害。",
             },
             "rumor_containment": {
-                "name": "Contain rumors",
-                "description": "Reduce the spread of unverified information.",
+                "name": "遏制谣言传播",
+                "description": "减少未经证实信息的传播。",
             },
             "long_term_trust": {
-                "name": "Build trust",
-                "description": "Maintain transparent and credible communication.",
+                "name": "建设长期信任关系",
+                "description": "通过公开、可信的沟通建立持久互信。",
             },
         },
     },
 
-    # Filled by simulation.infra.event.build_config().
+    # 由 simulation.infra.event.build_config() 注入。
     "data_path": {},
 
     "panic_keywords": [

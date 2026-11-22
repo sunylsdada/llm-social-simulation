@@ -33,7 +33,7 @@ python reddit_scraper.py --help
 
 ## 输出
 
-`output/` 目录下生成：
+默认输出到 `scraped/` 目录：
 - `.json` — 完整数据（帖子信息 + 评论列表）
 - `.csv`  — 评论表格，字段：comment_id、author、body、published
 
@@ -42,4 +42,4 @@ python reddit_scraper.py --help
 - 基于 Reddit RSS feed，每页约 25 条顶层评论
 - 不包含嵌套回复（RSS 不提供嵌套结构）
 - 翻页间隔 5 秒，受 Reddit 频率限制
-- 如需**完整嵌套评论**，请用 PRAW 方案
+- 如需**完整嵌套评论**，请改用 Reddit 官方 API 或其他抓取方案

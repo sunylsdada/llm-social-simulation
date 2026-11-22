@@ -49,7 +49,7 @@ class Post:
         # 最后一次内容更新的天数。预设帖 fact/gov_comm 等于 day；
         # S3 的每日进展通报会原地更新通告正文，此时 updated_day 会推进到当天。
         self.updated_day = day
-        # Preset 类型：fact / gov_comm；S4 新话题为 new_topic；普通帖为 None。
+        # 预设类型：fact / gov_comm；S4 新话题为 new_topic；普通帖为 None。
         self.stimulus_type = None
 
         self.comments = {}            # {cid: Comment}

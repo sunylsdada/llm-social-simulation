@@ -361,7 +361,7 @@ def event_context(spec: EventSpec) -> dict:
 
 
 def _apply_overrides(cfg: dict, overrides: dict | None) -> None:
-    """Apply explicit CLI overrides; unknown keys are an error."""
+    """应用显式 CLI 覆盖；未知键直接报错。"""
     if not overrides:
         return
     sc = cfg["simulation_config"]
@@ -422,7 +422,7 @@ def build_config(
     overrides: dict | None = None,
     events_root: Path | None = None,
 ) -> dict:
-    """Build a per-run config from an event package (deep-copied)."""
+    """从事件包构建一次运行的配置（深拷贝，不修改全局配置）。"""
     spec = load_event(event_id, events_root=events_root)
     cfg = copy.deepcopy(CONFIG)
     paths = event_paths(spec)
@@ -687,7 +687,7 @@ def validate_event(spec: EventSpec, strict: bool = False) -> list[Issue]:
         except EventError as e:
             add("error", str(e), "processed")
 
-    # ---- prompt 上下文 ----
+    # ---- prompt 上下文检查 ----
     ctx = event_context(spec)
     for key in ("event_name", "event_description", "official_body"):
         if not ctx.get(key):

@@ -1,17 +1,17 @@
 """
-Build the agent population from author-level Big Five labels.
+根据作者级大五标签构建网民 agent 群体。
 
-Pipeline:
-1. read ``interim/author_big5.jsonl`` (one label set per author);
-2. weight each label by the author's comment count;
-3. allocate the configured number of seats proportionally, with a per-label cap;
-4. pick the most active authors within each label;
-5. write ``processed/user.csv`` with uid/name/age/gender/big_five/activity.
+流程：
+1. 读取 ``interim/author_big5.jsonl``（每个作者一组标签）；
+2. 以作者的评论条数作为标签权重；
+3. 按比例分配配置的席位数，并对单一标签设上限；
+4. 在每个标签内挑选评论数最多的作者；
+5. 写出 ``processed/user.csv``，列为 uid/name/age/gender/big_five/activity。
 
-Age/gender are deterministic prior samples; an event can override the priors in
-``event.json``. Activity is assigned by comment-count percentile.
+年龄/性别是确定性先验采样，事件可以在 ``event.json`` 中覆盖。
+活跃度按评论数百分位切分。
 
-Usage:
+用法：
     python -m personas.build_agents_author --event demo
     python -m personas.build_agents_author --event demo --dry-run
 """
@@ -100,13 +100,13 @@ def main():
         except Exception:
             pass
 
-    ap = argparse.ArgumentParser(description='Build agents from author-level Big Five labels')
-    ap.add_argument('--event', default='demo', help='Event id (default: demo)')
-    ap.add_argument('--seats', type=int, default=None, help='Override event seat count')
+    ap = argparse.ArgumentParser(description='按作者级大五标签构建网民 agent')
+    ap.add_argument('--event', default='demo', help='事件 ID（默认 demo）')
+    ap.add_argument('--seats', type=int, default=None, help='覆盖事件的席位数')
     ap.add_argument('--cap-share', type=float, default=None,
-                    help='Per-label seat cap (default from event, 0.40)')
+                    help='单一标签的席位上限（默认取事件配置，0.40）')
     ap.add_argument('--allow-fewer', action='store_true',
-                    help='Reduce seats if there are fewer labelled authors')
+                    help='作者不足时自动缩减席位')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args()
 

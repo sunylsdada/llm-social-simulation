@@ -316,7 +316,7 @@ def plot(days, dates, real, sim, real_norm, sim_norm, metrics, active, out_png):
 
     ax2.set_xticks(days)
     ax2.set_xticklabels([d[5:] for d in dates], rotation=45, ha='right')
-    ax2.set_xlabel('Date')
+    ax2.set_xlabel('日期')
 
     fig.text(
         0.01, 0.005,

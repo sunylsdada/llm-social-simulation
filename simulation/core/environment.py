@@ -497,7 +497,7 @@ class Simulator:
     # ---- 主循环 ----
 
     def run(self):
-        """Main simulation loop."""
+        """仿真主循环。"""
         for day in range(1, self.total_days + 1):
             self.logger.phase(f'Day {day}/{self.total_days}  策略={self.current_strategy}')
 

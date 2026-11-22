@@ -1,9 +1,9 @@
-"""Daily negative-emotion curve for an event package.
+"""事件包的日度负面情绪曲线。
 
-Metric: ``negative = (anxiety + anger) / 2`` over on-topic comments.
+指标：``negative = (焦虑 + 愤怒) / 2``，只统计 on_topic=1 的评论。
 
-Input:  events/<id>/interim/comments_clean.csv + comment_scores.jsonl
-Output: events/<id>/processed/negative_emotion_daily.csv/.json + figures
+输入：events/<id>/interim/comments_clean.csv + comment_scores.jsonl
+输出：events/<id>/processed/negative_emotion_daily.csv/.json 和图表
 """
 
 import argparse
@@ -102,9 +102,9 @@ def plot(baseline, out_dir: Path, normalized=False, min_n=MIN_N_PLOT):
     ax.plot(xs, ys, marker='o', linewidth=2, color='#7f7f7f', markersize=7)
     ax.set_xticks(xs)
     ax.set_xticklabels([r['day'][5:] for r in points], rotation=45)
-    ax.set_xlabel('Date')
-    ax.set_ylabel('negative' + (' (normalized)' if normalized else ''))
-    ax.set_title(f'Daily negative emotion {tag}')
+    ax.set_xlabel('日期')
+    ax.set_ylabel('负面情绪' + ('（归一化）' if normalized else ''))
+    ax.set_title(f'日度负面情绪 {tag}')
     ax.grid(True, alpha=0.3)
     for x, y, r in zip(xs, ys, points):
         if y is not None:
@@ -142,7 +142,7 @@ def main():
     stats = normalize(baseline, min_n)
 
     print(f'on-topic comments: {len(rows)}\n')
-    print(f"{'date':12s} {'n':>5s} {'negative':>10s}")
+    print(f"{'日期':12s} {'n':>5s} {'negative':>10s}")
     for r in baseline:
         val = '—' if r['negative'] is None else f"{r['negative']:.3f}"
         print(f"{r['day']:12s} {r['n']:5d} {val:>10s}")
@@ -163,13 +163,12 @@ def main():
     json_path = paths.negative_daily_json
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump({
-            'note': ('Daily negative emotion over the event window; '
-                     'the reference corpus may be real, synthetic, or mixed.'),
+            'note': ('事件窗口内的日度负面情绪；真实侧语料可能是真实、合成或混合数据。'),
             'primary_metric': 'negative',
             'metric_mapping': {'negative': '(anxiety + anger) / 2'},
-            'filters': {'on_topic': 1, 'weight': 'equal per comment'},
+            'filters': {'on_topic': 1, 'weight': '每条评论等权'},
             'plot_filter': {'metric': 'n_comments', 'min': min_n},
-            'normalization': {'method': 'min-max per metric',
+            'normalization': {'method': '每个指标 min-max',
                               'basis_min_n': min_n, **stats},
             'days': baseline,
         }, f, ensure_ascii=False, indent=2)
@@ -178,9 +177,9 @@ def main():
                   + plot(baseline, paths.outputs_dir / 'figures',
                          normalized=True, min_n=min_n))
     print(f'\nwrote {csv_path}')
-    print(f'wrote {json_path}')
+    print(f'已写入 {json_path}')
     for p in plot_paths:
-        print(f'wrote {p}')
+        print(f'已写入 {p}')
 
 
 if __name__ == '__main__':

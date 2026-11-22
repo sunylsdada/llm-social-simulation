@@ -15,7 +15,7 @@ if __package__ in (None, ''):
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 ap = argparse.ArgumentParser(description='打印效用矩阵')
-ap.add_argument('--event', default='demo', help='Event id (default: demo)')
+ap.add_argument('--event', default='demo', help='事件 ID（默认 demo）')
 args = ap.parse_args()
 
 from simulation.infra.event import build_config

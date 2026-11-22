@@ -7,10 +7,11 @@
 ## 第一次使用？
 
 - **只想先跑起来？** 看下面的“快速开始”，自带的合成示例不需要 API key。
+- **想了解项目定位和角色？** 读 `docs/PROJECT_INTRODUCTION.md`。
 - **想导入自己的事件？** 先读 `events/README.md` 和 `docs/ADDING_AN_EVENT.md`，再按“新事件完整流程”操作。
-- **想了解内部实现？** 读 `docs/ARCHITECTURE.md`。
+- **想了解内部实现和运行流程？** 读 `docs/ARCHITECTURE.md`。
 
-目前 `README.md`、`events/README.md`、`docs/ADDING_AN_EVENT.md` 是中文，`docs/ARCHITECTURE.md` 是英文。
+仓库内文档均为中文。
 
 ## 快速开始
 
@@ -203,7 +204,7 @@ personas/      导入、清洗、打分、作者级大五、席位、初始状�
 experiments/   验证、对比、绘图、策略预检、事件编排
 events/        _template 和合成示例
 tests/         无网络单元/集成测试
-docs/          事件约定和架构说明
+docs/          项目介绍、事件约定和架构说明
 scraping/      可选的通用 Reddit RSS 采集器
 ```
 

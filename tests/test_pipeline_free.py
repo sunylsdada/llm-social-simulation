@@ -20,7 +20,7 @@ def run(cmd, env):
 
 
 def copy_clean_demo(events_root: Path) -> Path:
-    """Copy the demo and remove generated files so tests are repeatable."""
+    """复制示例并删除生成物，保证测试可重复。"""
     dst = events_root / "demo"
     shutil.copytree(ROOT / "events" / "demo", dst)
     for rel in ("input/comments.csv", "interim/comments_clean.csv",

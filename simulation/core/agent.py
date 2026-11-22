@@ -16,7 +16,7 @@ from simulation.infra.exceptions import LLMException
 # ⚠️ 2026-10-19：主路径已改为「LLM 根据画像生成三个初值 + 小随机扰动」，
 # 初值缓存在 events/<id>/processed/initial_states.csv。
 # 下面的加性模型只在缺少 LLM 初值时作为 fallback，保留是为了兼容旧数据；
-# It is now only a fallback.
+# 现在只作为缺少 LLM 初值时的 fallback。
 #
 # 方向依据人格心理学中较一致的结论：
 #   · Neuroticism（情绪不稳定性 / 威胁敏感）→ 更易恐慌、更不信任、更易轻信
@@ -32,9 +32,9 @@ BIG_FIVE_EFFECTS = {
     'Neuroticism':       (+0.12, -0.06, +0.10),
 }
 
-# 旧版 fallback 的校准常数：使加性模型的 40 人均值接近旧版均匀随机初始化
+# 旧版 fallback 的校准常数：使加性模型均值接近旧版的均匀随机初始化
 # （panic≈0.21 / trust≈0.46 / rumor≈0.35）。它不是“中性心理状态”的测量值，
-# These constants are not calibrated observations.
+# 这些常数不是经过标定的观测值。
 INIT_BASE = (0.213, 0.441, 0.391)   # panic, trust, rumor
 INIT_NOISE = 0.03                   # fallback 的默认个体噪声
 
@@ -111,7 +111,7 @@ class Agent:
         # ---- 心理基线（用于回归项）----
         # 人的心理状态有回归性：不会因为持续接触同类信息而无限恐慌下去。
         # 没有这一项时，实测每次反思 panic 都单调 +0.027（100% 正向），
-        # Without it, long runs tend to saturate and strategies become indistinguishable.
+        # 没有这一项时，长跑容易饱和，策略之间会难以区分。
         self.panic_baseline = self.panic
         self.trust_baseline = self.government_trust
         self.rumor_baseline = self.rumor_susceptibility
@@ -140,7 +140,7 @@ class Agent:
         """
         record = {}
 
-        # Step 1: 感知 + 选择行动
+        # 第一步：感知 + 选择行动
         # 传入 agent 和 day：摘要里会标出「今日新增」「官方发布」「你的评论」
         flow_summary = summarize_info_flow(info_flow, agent=self, current_day=day)
         action_prompt = get_action_prompt(self, flow_summary)
@@ -162,7 +162,7 @@ class Agent:
         }
         action_type = action_map.get(action_code, 'silent')
 
-        # Step 2: 如果需要，生成内容
+        # 第二步：如需要，生成内容
         content_info = {}
         if action_type == 'comment':
             comment_prompt = get_comment_prompt(self, flow_summary)
@@ -299,7 +299,7 @@ class Agent:
 
         # 心理回归（习惯化）：观测值向自身基线温和回落。
         # 实测没有这一项时，每次反思 panic 都 +0.027 且 100% 正向 —— 信息流里
-        # With only alarming content, panic would drift upward without bound.
+        # 如果信息流全是惊悚内容，恐慌会单向上升而没有边界。
         # 真实数据里 distrust 是"先涨后平"（P1 0.190→P2 0.295→P3 0.293→P4 0.306），
         # 这一项正是用来复现那个平台期的；系数可在 config 里标定。
         rho = self.global_config['agent_config'].get('affect_reversion', 0.0)
