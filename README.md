@@ -1,26 +1,18 @@
-# Event-Driven LLM Social Simulation
+# 事件驱动的 LLM 社会舆情仿真框架
 
-A small, event-package-based framework for simulating public-opinion dynamics with
-LLM agents. Each event supplies comments and a daily stimulus timeline; the
-framework builds agent personas, runs a day-by-day multi-agent simulation, and
-produces validation summaries and plots.
+一个以“事件包”为单位的轻量级社会舆情仿真框架。每个事件提供评论数据和每日刺激源时间线，框架负责构建网民画像、逐日运行多智能体仿真，并生成验证曲线和图表。
 
-The repository contains the framework, a Chinese synthetic demo event, and the
-tests needed to run it without network access. It does **not** ship a scraped
-dataset or a paper-specific case study.
+仓库包含框架代码、一个中文合成示例和一套无网络测试；**不包含**抓取数据集，也不包含任何具体论文案例。
 
-## First time here?
+## 第一次使用？
 
-- **Just want to see it run?** Follow “Demo quick start” below. No API key is
-  needed.
-- **Want to add your own event?** Read `events/README.md` and
-  `docs/ADDING_AN_EVENT.md`, then follow “Full pipeline for a new event”.
-- **Want to understand the internals?** Read `docs/ARCHITECTURE.md`.
+- **只想先跑起来？** 看下面的“快速开始”，自带的合成示例不需要 API key。
+- **想导入自己的事件？** 先读 `events/README.md` 和 `docs/ADDING_AN_EVENT.md`，再按“新事件完整流程”操作。
+- **想了解内部实现？** 读 `docs/ARCHITECTURE.md`。
 
-`events/README.md` and `docs/ADDING_AN_EVENT.md` are currently written in
-Chinese; `docs/ARCHITECTURE.md` is in English.
+目前 `README.md`、`events/README.md`、`docs/ADDING_AN_EVENT.md` 是中文，`docs/ARCHITECTURE.md` 是英文。
 
-## 五分钟上手（中文）
+## 快速开始
 
 本项目是一个“事件包驱动”的 LLM 多智能体舆情仿真框架。每个事件放在
 `events/<id>/`，自带输入、缓存、处理结果和输出。
@@ -32,12 +24,16 @@ python -m venv .venv
 # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
 
-# 2. 跑自带的 synthetic demo（不需要 API key）
+# 2. 跑自带的合成示例（不需要 API key）
 python -m personas.pipeline --event demo --stage free
 python -m simulation.run --event demo --run-id smoke --days 3 --llm-type fake
 ```
 
-结果在 `events/demo/outputs/runs/smoke/record.json`。
+结果在：
+
+```text
+events/demo/outputs/runs/smoke/record.json
+```
 
 要导入自己的事件：复制 `events/_template`，按
 `docs/ADDING_AN_EVENT.md` 填 `event.json`、`raw_comments.csv` 和
@@ -51,22 +47,17 @@ python -m personas.pipeline --event my_event --stage free
 付费的 LLM 打分步骤需要先设置 `LLM_API_KEY`，并加 `--yes-paid`；建议先用
 `--pilot` 小规模跑。
 
-## What is in the box
+## 这个仓库包含什么
 
-- **Event packages** (`events/<id>/`) with their own input, interim, processed,
-  and output directories.
-- **Persona pipeline**: comment import, cleaning, LLM scoring, author-level Big
-  Five labels, seat allocation, and initial psychological states.
-- **Simulation core**: configurable agents, one analyst agent, one
-  government agent, a post pool, information-flow freshness handling, and five
-  government strategies (S1-S5).
-- **Validation helpers**: daily negative-emotion curve, phase summaries, shape
-  comparison against a simulation record, and event-level orchestration.
-- **Fake LLM** for deterministic, network-free smoke tests.
+- **事件包**（`events/<id>/`）：每个事件有独立的输入、缓存、处理结果和输出目录。
+- **画像流水线**：评论导入、清洗、LLM 打分、作者级大五人格、席位分配、初始心理状态。
+- **仿真核心**：可配置数量的网民 agent、1 个分析师 agent、1 个政府 agent、帖子池、信息时效性处理，以及 S1–S5 五种政府策略。
+- **验证工具**：日度负面情绪曲线、阶段汇总、真实曲线与仿真记录的形态对比、事件级实验编排。
+- **FakeLLM**：无需网络即可跑通完整流程的确定性假模型，用于测试和冒烟。
 
-## Installation
+## 安装
 
-Requires **Python 3.10+**.
+需要 **Python 3.10 或以上**。
 
 ```bash
 python -m venv .venv
@@ -75,30 +66,29 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-For real LLM calls, set:
+如果要调用真实 LLM，设置：
 
 ```bash
-export LLM_API_KEY="your-key"          # or OPENAI_API_KEY
-export LLM_BASE_URL="https://api.siliconflow.cn/v1"   # optional
-export LLM_MODEL_NAME="deepseek-ai/DeepSeek-V4-Flash" # optional
+export LLM_API_KEY="你的 key"          # 也可以使用 OPENAI_API_KEY
+export LLM_BASE_URL="https://api.siliconflow.cn/v1"   # 可选
+export LLM_MODEL_NAME="deepseek-ai/DeepSeek-V4-Flash" # 可选
 ```
 
-Never commit a key. `record.json` stores a redacted configuration.
+不要把 key 写进代码或提交到仓库。`record.json` 中的配置会自动脱敏。
 
-## Demo quick start (no paid LLM)
+## 示例快速开始（不需要付费 LLM）
 
-`events/demo` is a 3-day Chinese synthetic example. It already contains the
-author-level Big Five cache needed to build personas.
+`events/demo` 是一个 3 天的中文合成示例，已经包含构建画像所需的作者级大五缓存。
 
 ```bash
-# One command for the free pipeline (import, clean, personas, stimuli, validate)
+# 一条命令跑完免费流程：导入、清洗、画像、刺激源、校验
 python -m personas.pipeline --event demo --stage free
 
-# Deterministic smoke simulation (no network)
+# 确定性冒烟仿真（不联网）
 python -m simulation.run --event demo --run-id smoke --days 3 --llm-type fake
 ```
 
-You can also run the free steps individually:
+也可以手动分步执行：
 
 ```bash
 python -m personas.import_event --event demo
@@ -108,7 +98,7 @@ python -m personas.prepare_stimulus --event demo
 python -m personas.validate_event --event demo --strict
 ```
 
-Output is written under:
+输出在：
 
 ```text
 events/demo/outputs/runs/smoke/
@@ -118,24 +108,22 @@ events/demo/outputs/runs/smoke/
   simulation_llm.log
 ```
 
-To run the same demo with a real LLM, omit `--llm-type fake` and make sure
-`LLM_API_KEY` is set.
+如果想用真实 LLM 跑同一个示例，去掉 `--llm-type fake`，并确保已经设置
+`LLM_API_KEY`。
 
-## Full pipeline for a new event
+## 新事件完整流程
 
-1. Copy the template:
+1. 复制模板：
 
    ```bash
    cp -r events/_template events/my_event
    ```
 
-2. Edit `events/my_event/event.json` and fill in the event metadata, window,
-   phases, and column mapping.
+2. 编辑 `events/my_event/event.json`，填写事件名称、时间窗口、阶段划分和列名映射。
 
-3. Put the raw comments at `events/my_event/input/raw_comments.csv` and the
-   daily facts/official statements at `events/my_event/input/stimuli.csv`.
+3. 把原始评论放到 `events/my_event/input/raw_comments.csv`，把每日事实/官方表态放到 `events/my_event/input/stimuli.csv`。
 
-4. Import and validate:
+4. 导入并校验：
 
    ```bash
    python -m personas.import_event --event my_event --dry-run
@@ -143,13 +131,13 @@ To run the same demo with a real LLM, omit `--llm-type fake` and make sure
    python -m personas.validate_event --event my_event --strict
    ```
 
-5. Run the free steps:
+5. 跑免费步骤：
 
    ```bash
    python -m personas.pipeline --event my_event --stage free
    ```
 
-6. Run paid steps in pilots first:
+6. 付费步骤先试点，再全量：
 
    ```bash
    python -m personas.pipeline --event my_event --only score --pilot 20 --yes-paid
@@ -158,99 +146,86 @@ To run the same demo with a real LLM, omit `--llm-type fake` and make sure
    python -m personas.pipeline --event my_event --only initial_states --yes-paid
    ```
 
-7. Dry-run and then run the simulation:
+7. 先 dry-run，再正式仿真：
 
    ```bash
    python -m simulation.run --event my_event --run-id pilot --days 2 --dry-run
    python -m simulation.run --event my_event --run-id baseline
    ```
 
-8. Validate and compare:
+8. 验证与对比：
 
    ```bash
    python -m experiments.run_event --event my_event --mode validate
    python -m experiments.run_event --event my_event --mode compare --run-id baseline
    ```
 
-See `docs/ADDING_AN_EVENT.md` for the full field contract and
-`events/README.md` for the event-package layout.
+完整的字段约定见 `docs/ADDING_AN_EVENT.md`，事件包结构见 `events/README.md`。
 
-## Event package layout
+## 事件包结构
 
 ```text
 events/<id>/
   event.json
   input/
-    raw_comments.csv      # supplied by you
-    comments.csv          # generated by import_event, git-ignored
-    stimuli.csv           # daily facts / official statements
-  interim/                # cleaning and LLM caches
-  processed/              # user.csv, post.csv, validation curves
-  outputs/runs/<run_id>/  # record.json and logs
-  outputs/figures/        # plots
+    raw_comments.csv      # 你提供的原始评论
+    comments.csv          # import_event 生成，已被 git 忽略
+    stimuli.csv           # 每日事实 / 官方表态
+  interim/                # 清洗和 LLM 缓存
+  processed/              # user.csv、post.csv、验证曲线
+  outputs/runs/<run_id>/  # record.json 和日志
+  outputs/figures/        # 图表
 ```
 
-Only `event.json`, the template/demo inputs, and the demo author cache are
-committed. Generated comments, processed files, records, and logs are ignored.
+只有 `event.json`、模板/示例输入和示例作者缓存会被提交；生成的评论、处理结果、记录和日志都被忽略。
 
-## Simulation model
+## 仿真模型
 
-- Each网民 agent has three dynamic states: `panic`, `government_trust`, and
-  `rumor_susceptibility`.
-- Each day an agent may comment, reply, vote, share, or stay silent.
-- After acting, the agent reflects on the information flow and updates the three
-  states. A small baseline reversion term prevents unbounded one-way drift.
-- The government decides on configured decision days among five strategy
-  packages: silence, suppression, transparent communication, agenda shifting,
-  and a combined approach.
-- The analyst agent turns the day's posts and comments into a short brief.
+- 每个网民 agent 有三个动态状态：`panic`（恐慌）、`government_trust`（政府信任）、`rumor_susceptibility`（谣言易感性）。
+- 每天 agent 可以选择：发表评论、回复、点赞/点踩、转发、保持沉默。
+- 行动之后，agent 会根据当天信息流反思并更新三个状态；一个较小的基线回归项用于抑制单向漂移。
+- 政府在配置的决策日，从五种策略中选择一种：沉默观望、压制封堵、坦诚回应、转移议程、组合应对。
+- 分析师 agent 把当天的帖子和评论整理成一份简报。
 
-## Tests
+## 测试
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-The suite covers event loading, Chinese CSV import, date parsing, persona
-building, stimulus preparation, the free demo pipeline, and a FakeLLM simulation.
-It also includes a release-hygiene test that rejects private data, paper
-materials, key-like tokens, and case-specific strings.
+测试覆盖事件加载、中文 CSV 导入、日期解析、画像构建、刺激源准备、免费示例流水线和 FakeLLM 仿真。此外还有发布卫生检查，拒绝私有数据、研究材料、key 形式的字符串和特定案例字符串。
 
-## Repository layout
+## 仓库结构
 
 ```text
-simulation/    core loop, agents, government, posts, event config, LLM adapters
-personas/      import, clean, score, author Big Five, seats, initial states
-experiments/   validation, comparison, plotting, strategy pilot, event runner
-events/        _template and synthetic demo
-tests/         network-free unit/integration tests
-docs/          event contract and architecture notes
-scraping/      optional generic Reddit RSS collector
+simulation/    仿真主循环、agent、政府、帖子、事件配置、LLM 适配
+personas/      导入、清洗、打分、作者级大五、席位、初始状态
+experiments/   验证、对比、绘图、策略预检、事件编排
+events/        _template 和合成示例
+tests/         无网络单元/集成测试
+docs/          事件约定和架构说明
+scraping/      可选的通用 Reddit RSS 采集器
 ```
 
-## Troubleshooting
+## 常见问题
 
-- **`missing input/comments.csv`** — run
-  `python -m personas.import_event --event <id>` first.
-- **`missing interim/author_big5.jsonl`** — run the paid author-level Big Five
-  step (`personas.pipeline --event <id> --only author_big5 --yes-paid`).
-- **`No API key configured`** — set `LLM_API_KEY` or `OPENAI_API_KEY`; the demo
-  with `--llm-type fake` needs no key.
-- **`output already exists`** — use a different `--run-id`, or add `--force`.
-- **comments are dropped as too short** — lower `input.min_body_chars` in
-  `event.json` for Chinese or short-comment corpora.
-- **dates fail to parse** — add the exact format to `input.time_formats` and
-  check `interim/import_report.json`.
-- **no stimuli for some days** — fill `input/stimuli.csv`; for a link-only smoke
-  test use `personas.prepare_stimulus --allow-placeholder`, but the result is not
-  usable for research.
+- **提示缺少 `input/comments.csv`**：先运行
+  `python -m personas.import_event --event <id>`。
+- **提示缺少 `interim/author_big5.jsonl`**：先跑付费的作者级大五步骤
+  （`personas.pipeline --event <id> --only author_big5 --yes-paid`）。
+- **提示 `No API key configured`**：设置 `LLM_API_KEY` 或 `OPENAI_API_KEY`；
+  使用 `--llm-type fake` 的示例不需要 key。
+- **提示输出已存在**：换一个 `--run-id`，或加 `--force`。
+- **评论被判定为太短而丢弃**：在 `event.json` 中调低 `input.min_body_chars`，
+  中文评论或短评语料通常需要更小的值。
+- **日期解析失败**：把实际格式加入 `input.time_formats`，并查看
+  `interim/import_report.json`。
+- **某些天没有刺激源**：补全 `input/stimuli.csv`；只做链路冒烟时可以加
+  `personas.prepare_stimulus --allow-placeholder`，但结果不能用于正式分析。
 
-## Notes
+## 注意事项
 
-- The demo is synthetic and is only for smoke testing; it is not a research
-  result.
-- Event data is supplied by the user. Do not commit private corpora.
-- LLM sampling is stochastic; fix the seed for the Python-side random process and
-  report multiple seeds for substantive experiments.
-- The utility matrix ships at zero. It must be calibrated per event before
-  strategy choices are meaningful.
+- 自带示例是合成数据，只用于冒烟测试，不是研究结果。
+- 事件数据由使用者自行提供；不要提交私有语料。
+- LLM 采样具有随机性；Python 侧随机过程可以固定种子，但正式实验应报告多个种子。
+- 效用矩阵默认全为 0，必须先按事件标定，政府策略选择才有实际意义。
