@@ -1,0 +1,4 @@
+{"comment_id": "张三", "big5": ["C", "O"], "evidence": "fixture", "model": "fixture"}
+{"comment_id": "李四", "big5": ["C", "N"], "evidence": "fixture", "model": "fixture"}
+{"comment_id": "王五", "big5": ["C"], "evidence": "fixture", "model": "fixture"}
+{"comment_id": "赵六", "big5": ["O", "N"], "evidence": "fixture", "model": "fixture"}

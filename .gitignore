@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+
+# Private / legacy data locations (defensive)
+data/
+outputs/
+backups/
+archive/
+scraped/
+
+# Event generated artifacts
+events/*/input/comments.csv
+events/*/input/raw_comments.csv
+!events/_template/input/raw_comments.csv
+!events/demo/input/raw_comments.csv
+events/*/interim/*
+!events/demo/interim/author_big5.jsonl
+events/*/processed/
+events/*/outputs/
+events/*/source/
+events/*/MIGRATION_MANIFEST.json
+
+# Documents and binaries
+*.pdf
+*.pptx
+*.docx
+*.jpg
+*.jpeg
+*.png

@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "event_id": "template",
+  "name": "示例事件（复制后改名）",
+  "language": "zh",
+  "platform": "weibo",
+  "timezone": "Asia/Shanghai",
+  "utc_offset": "+08:00",
+  "window": {
+    "start": "2024-01-01",
+    "end": "2024-01-03",
+    "total_days": 3
+  },
+  "phases": [
+    {
+      "id": "P1",
+      "name": "事发与信息真空",
+      "start_day": 1,
+      "end_day": 2
+    },
+    {
+      "id": "P2",
+      "name": "回应与追问",
+      "start_day": 3,
+      "end_day": 3
+    }
+  ],
+  "simulation": {
+    "decision_days": [
+      3
+    ],
+    "seats": 5,
+    "max_agents": 5,
+    "allow_fewer_seats": true,
+    "cap_share": 0.4,
+    "mode_default": "replay",
+    "intervention_timing": "split",
+    "strict_comment_targets": true,
+    "max_workers": 4
+  },
+  "input": {
+    "comments": "input/comments.csv",
+    "stimuli": "input/stimuli.csv",
+    "allow_placeholder_stimuli": false,
+    "time_formats": [
+      "%Y-%m-%dT%H:%M:%S%z",
+      "%Y-%m-%d %H:%M:%S",
+      "%Y/%m/%d %H:%M:%S",
+      "%Y年%m月%d日 %H:%M"
+    ],
+    "min_body_chars": 8,
+    "bad_authors": [
+      "[deleted]",
+      "[removed]",
+      "匿名用户",
+      "已注销"
+    ],
+    "source_policy": {
+      "mode": "constant",
+      "value": "real"
+    },
+    "column_map": {
+      "comment_id": [
+        "comment_id",
+        "id",
+        "评论ID",
+        "评论id"
+      ],
+      "author": [
+        "author",
+        "user",
+        "用户名",
+        "用户"
+      ],
+      "body": [
+        "body",
+        "text",
+        "content",
+        "评论内容",
+        "正文"
+      ],
+      "published": [
+        "published",
+        "time",
+        "created_at",
+        "发布时间",
+        "时间"
+      ],
+      "post_id": [
+        "post_id",
+        "note_id",
+        "帖子ID",
+        "话题ID"
+      ],
+      "post_title": [
+        "post_title",
+        "title",
+        "标题"
+      ],
+      "parent_id": [
+        "parent_id",
+        "reply_to",
+        "父评论ID"
+      ],
+      "depth": [
+        "depth",
+        "层级"
+      ],
+      "channel": [
+        "channel",
+        "来源",
+        "平台"
+      ],
+      "source": [
+        "source",
+        "数据来源"
+      ],
+      "likes": [
+        "likes",
+        "like_num",
+        "点赞数"
+      ]
+    }
+  },
+  "prompts": {
+    "event_name": "示例事件",
+    "event_description": "请替换为你的事件背景：发生了什么、涉及谁、公众最关心什么。",
+    "location": "请替换为事件地点",
+    "official_body": "负责处置此事的官方机构",
+    "topic_shift_guidance": "科技创新、民生改善、文化活动、体育赛事等积极方向",
+    "fallback_topic": {
+      "title": "本地积极进展",
+      "content": "近日本地在民生与公共服务方面取得积极进展。"
+    },
+    "source_labels": {
+      "official": "官方发布",
+      "local_news": "本地新闻",
+      "government_notice_title": "关于事件的官方通报"
+    }
+  },
+  "scoring": {
+    "archetypes": null,
+    "fields": {
+      "tacitus": true,
+      "rumor": true,
+      "partisan": false
+    }
+  },
+  "keywords": {
+    "panic": [
+      "恐慌",
+      "可怕",
+      "完了",
+      "爆炸",
+      "死亡",
+      "逃",
+      "抢购",
+      "崩溃"
+    ],
+    "negative": [
+      "愤怒",
+      "恶心",
+      "绝望",
+      "失望",
+      "垃圾",
+      "滚",
+      "恨"
+    ],
+    "suppress": []
+  },
+  "demographics": {
+    "age_bands": [
+      [
+        18,
+        29,
+        0.42
+      ],
+      [
+        30,
+        49,
+        0.32
+      ],
+      [
+        50,
+        64,
+        0.19
+      ],
+      [
+        65,
+        75,
+        0.07
+      ]
+    ],
+    "gender_weights": [
+      [
+        "Male",
+        0.63
+      ],
+      [
+        "Female",
+        0.37
+      ]
+    ]
+  },
+  "validation": {
+    "min_n_per_day": 2,
+    "variants": [
+      {
+        "id": "all",
+        "filters": []
+      }
+    ]
+  }
+}
