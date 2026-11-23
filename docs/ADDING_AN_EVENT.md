@@ -197,7 +197,7 @@ python -m experiments.calibrate_utility --event my_event   --seeds 42,43,44 --ye
 python -m experiments.run_event --event my_event   --mode calibrate --seeds 42,43,44 --yes-paid
 ```
 
-标定会以 S1 为基准，用同一初始状态强制跑 S2–S5，计算相对 S1 的终局变化，并写入：
+标定默认使用 `counterfactual` 刺激源，以 S1 为基准，用同一初始状态强制跑 S2–S5，计算相对 S1 的终局变化，并写入：
 
 ```text
 events/my_event/processed/utility_matrix.json

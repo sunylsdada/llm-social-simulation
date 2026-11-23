@@ -99,7 +99,7 @@ python -m experiments.calibrate_utility --event <id> \
   --seeds 42,43,44 --yes-paid
 ```
 
-标定以 S1 为基准，分别强制跑 S2–S5，再按“防恐慌 = -Δpanic、遏谣言 = -Δrumor、建信任 = +Δtrust”写入矩阵。`show_matrix.py` 可以查看结果。
+标定默认使用 `counterfactual` 刺激源，以 S1 为基准，分别强制跑 S2–S5，再按“防恐慌 = -Δpanic、遏谣言 = -Δrumor、建信任 = +Δtrust”写入矩阵。`show_matrix.py` 可以查看结果。
 
 ## 七、外部环境与信息流
 

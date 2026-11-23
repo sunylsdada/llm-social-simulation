@@ -172,6 +172,9 @@ def main():
                     help="逗号分隔的策略；S1 会自动作为基准")
     ap.add_argument("--metric", choices=METRICS, default="final",
                     help="用终局状态还是全时域轨迹均值计算")
+    ap.add_argument("--stimulus-mode", choices=["replay", "counterfactual"],
+                    default="counterfactual",
+                    help="刺激源模式；标定默认 counterfactual，避免历史官方表态叠加")
     ap.add_argument("--agents", type=int, default=None, help="覆盖 agent 数量")
     ap.add_argument("--days", type=int, default=None, help="覆盖仿真天数")
     ap.add_argument("--model", default=None, help="覆盖模型名")
@@ -210,12 +213,16 @@ def main():
         raise SystemExit("标定会调用真实 LLM；请加 --yes-paid，或使用 --llm-type fake。")
 
     base_cfg = build_config(args.event, run_id="calibrate")
-    from simulation.infra.utils import load_user
-    available = len(load_user(base_cfg))
+    base_cfg.setdefault("stimulus_config", {})["mode"] = args.stimulus_mode
     requested_agents = args.agents or base_cfg["simulation_config"]["max_agents"]
-    if requested_agents > available:
-        print(f"[提示] 请求 {requested_agents} 个 agent，但 user.csv 只有 {available} 行，"
-              f"按 {available} 个运行。")
+    if args.dry_run:
+        available = requested_agents
+    else:
+        from simulation.infra.utils import load_user
+        available = len(load_user(base_cfg))
+        if requested_agents > available:
+            print(f"[提示] 请求 {requested_agents} 个 agent，但 user.csv 只有 {available} 行，"
+                  f"按 {available} 个运行。")
     base_cfg["simulation_config"]["max_agents"] = min(requested_agents, available)
     if args.days:
         base_cfg["simulation_config"]["total_days"] = args.days
@@ -231,6 +238,7 @@ def main():
     print(f"规模: {base_cfg['simulation_config']['max_agents']} agents × "
           f"{base_cfg['simulation_config']['total_days']} 天")
     print(f"指标: {args.metric}")
+    print(f"刺激源模式: {args.stimulus_mode}")
     print(f"输出: {out_path}")
     if llm_type == "fake":
         print("LLM: fake（结果仅用于流程演示，不是研究结论）")
@@ -266,6 +274,7 @@ def main():
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "method": "反事实实验：以 S1 为基准，比较同一初始状态下的终局变化",
         "metric": args.metric,
+        "stimulus_mode": args.stimulus_mode,
         "seeds": seeds,
         "strategies": strategies,
         "agents": base_cfg["simulation_config"]["max_agents"],

@@ -202,6 +202,8 @@ python -m experiments.run_event --event my_event \
   --mode calibrate --seeds 42,43,44 --yes-paid
 ```
 
+标定默认使用 `counterfactual` 刺激源（只加载事实，不叠加历史官方表态）。
+
 标定会：
 
 1. 对每个种子先跑 S1 沉默观望；

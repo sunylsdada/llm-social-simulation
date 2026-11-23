@@ -54,6 +54,8 @@ def main() -> None:
     ap.add_argument("--agents", type=int, default=None, help="覆盖 agent 数量（标定用）")
     ap.add_argument("--model", default=None)
     ap.add_argument("--llm-type", default=None)
+    ap.add_argument("--stimulus-mode", choices=["replay", "counterfactual"], default=None,
+                    help="覆盖刺激源模式（标定默认 counterfactual）")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--yes-paid", action="store_true")
     ap.add_argument("--force", action="store_true")
@@ -82,6 +84,8 @@ def main() -> None:
             cmd += ["--model", args.model]
         if args.llm_type:
             cmd += ["--llm-type", args.llm_type]
+        if args.stimulus_mode:
+            cmd += ["--stimulus-mode", args.stimulus_mode]
         if args.force:
             cmd += ["--force"]
         if args.yes_paid:

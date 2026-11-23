@@ -259,7 +259,7 @@ agent 的反思输出会记录它认为哪些 pid 是最新、哪些已过时，
 
 ### 7.4 效用矩阵标定
 
-默认矩阵全为 0，政府会默认选择 S1。标定流程在 `experiments/calibrate_utility.py`：
+默认矩阵全为 0，政府会默认选择 S1。标定流程在 `experiments/calibrate_utility.py`，默认使用 `counterfactual` 刺激源（只加载事实，避免历史官方表态叠加）：
 
 1. 对每个随机种子，先跑一次 S1 作为基准；
 2. 用同一初始状态、同一刺激源、同一模型，强制跑 S2–S5；
