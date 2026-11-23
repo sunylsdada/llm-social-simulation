@@ -21,9 +21,10 @@ class ForcedStrategySimulator(Simulator):
         for day in range(1, self.total_days + 1):
             self.logger.phase(
                 f"第 {day}/{self.total_days} 天  强制策略={self.force_strategy}")
+            # 每天都强制使用目标策略，而不是只在决策日切换。
+            self.current_strategy = self.force_strategy
 
             if day in self.decision_days:
-                self.current_strategy = self.force_strategy
                 self.logger.log(f"强制策略: {self.force_strategy}")
                 self.social_media.execute_decision_day_action(
                     day, self.force_strategy, llm=self.llm)
@@ -33,6 +34,9 @@ class ForcedStrategySimulator(Simulator):
                     "weights": {"forced": True},
                     "situation_assessment": f"强制策略 {self.force_strategy}",
                 })
+
+            if self.intervention_timing == "split":
+                self.social_media.execute_pre_action(day)
 
             activity_prob = self.global_config["agent_config"]["activity_prob"]
             active_agents = [
@@ -81,11 +85,14 @@ class ForcedStrategySimulator(Simulator):
 
             self.logger.log(
                 f"第{day}天 活跃={len(active_agents)}/{len(self.agents)}", "STAT")
-            self.social_media.execute_daily_intervention(day)
+            if self.intervention_timing == "split":
+                self.social_media.execute_post_action(day)
+            else:
+                self.social_media.execute_daily_intervention(day)
             snapshot = self.social_media.get_snapshot(day, self.agents)
             self.recorder.add_record("DAILY_SNAPSHOT", snapshot)
             self.logger.log(
-                f'Day{day} avg_panic={snapshot["avg_panic"]:.3f} '
+                f'第{day}天 avg_panic={snapshot["avg_panic"]:.3f} '
                 f'avg_trust={snapshot["avg_trust"]:.3f} '
                 f'avg_rumor={snapshot["avg_rumor"]:.3f}', "STAT")
 

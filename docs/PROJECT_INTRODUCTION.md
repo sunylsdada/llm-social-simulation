@@ -92,7 +92,14 @@
 4. 选加权效用最高的策略；
 5. 写入政府记忆，下一次决策时回看上次预测是否准确。
 
-效用矩阵默认全为 0。标定前政府会默认选 S1，这是占位，不是研究结论。正式比较前需要按事件做反事实实验，把测出的相对效果写回 `processed/utility_matrix.json`。
+效用矩阵默认全为 0。标定前政府会默认选 S1，这是占位，不是研究结论。正式比较前需要按事件做反事实实验，把测出的相对效果写回 `processed/utility_matrix.json`：
+
+```bash
+python -m experiments.calibrate_utility --event <id> \
+  --seeds 42,43,44 --yes-paid
+```
+
+标定以 S1 为基准，分别强制跑 S2–S5，再按“防恐慌 = -Δpanic、遏谣言 = -Δrumor、建信任 = +Δtrust”写入矩阵。`show_matrix.py` 可以查看结果。
 
 ## 七、外部环境与信息流
 

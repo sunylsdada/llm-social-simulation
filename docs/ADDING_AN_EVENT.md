@@ -183,7 +183,41 @@ python -m experiments.plot_panic_normalized --event my_event --run-id baseline
 
 输出在 `events/my_event/outputs/analysis/` 和 `outputs/figures/`。
 
-## 7. 没有每日时间线怎么办
+## 7. 标定效用矩阵
+
+政府默认效用矩阵全为 0，所以会默认选 S1。正式比较策略前，需要先用反事实实验标定：
+
+```bash
+python -m experiments.calibrate_utility --event my_event   --seeds 42,43,44 --yes-paid
+```
+
+也可以走事件编排入口：
+
+```bash
+python -m experiments.run_event --event my_event   --mode calibrate --seeds 42,43,44 --yes-paid
+```
+
+标定会以 S1 为基准，用同一初始状态强制跑 S2–S5，计算相对 S1 的终局变化，并写入：
+
+```text
+events/my_event/processed/utility_matrix.json
+```
+
+符号约定：
+
+- 防恐慌效用 = `-Δpanic`
+- 遏谣言效用 = `-Δrumor`
+- 建信任效用 = `+Δtrust`
+
+之后 `simulation.run --event my_event` 会自动加载这个矩阵。查看当前矩阵：
+
+```bash
+python -m experiments.show_matrix --event my_event
+```
+
+只想演示流程、不调用真实 LLM 时，可以加 `--llm-type fake`；结果仅用于链路验证。
+
+## 8. 没有每日时间线怎么办
 
 仿真每天至少需要一条刺激。若你只有评论、没有事件时间线：
 
@@ -195,7 +229,7 @@ python -m personas.prepare_stimulus --event my_event --allow-placeholder
 `placeholder_stimuli=true`。**占位结果不能用于论文**；等你补好
 `input/stimuli.csv` 后重跑 `--only stimulus` 和仿真即可。
 
-## 8. 常见问题
+## 9. 常见问题
 
 - **作者数不足席位**：事件配置 `simulation.seats` 调到可用作者数，或设
   `allow_fewer_seats=true`；程序会在输出中记录实际席位数。

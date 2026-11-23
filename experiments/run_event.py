@@ -6,9 +6,10 @@
     python -m experiments.run_event --event my_event --mode replay --run-id baseline --yes-paid
     python -m experiments.run_event --event my_event --mode counterfactual --run-id cf --yes-paid
     python -m experiments.run_event --event my_event --mode compare --run-id baseline
+    python -m experiments.run_event --event my_event --mode calibrate --seeds 42,43,44 --yes-paid
     python -m experiments.run_event --event my_event --mode all --run-id baseline --yes-paid
 
-付费模式：replay / counterfactual / all（all 含 replay）需要 --yes-paid。
+付费模式：replay / counterfactual / calibrate / all 需要 --yes-paid。
 """
 
 from __future__ import annotations
@@ -46,10 +47,11 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="事件级实验编排")
     ap.add_argument("--event", default="demo")
     ap.add_argument("--mode", required=True,
-                    choices=["validate", "replay", "counterfactual", "compare", "plots", "all"])
+                    choices=["validate", "replay", "counterfactual", "compare", "plots", "calibrate", "all"])
     ap.add_argument("--run-id", default="baseline")
     ap.add_argument("--days", type=int, default=None)
     ap.add_argument("--seeds", default="42", help="逗号分隔的随机种子")
+    ap.add_argument("--agents", type=int, default=None, help="覆盖 agent 数量（标定用）")
     ap.add_argument("--model", default=None)
     ap.add_argument("--llm-type", default=None)
     ap.add_argument("--dry-run", action="store_true")
@@ -61,9 +63,32 @@ def main() -> None:
     paths = event_paths(spec)
     seeds = [int(s.strip()) for s in args.seeds.split(",") if s.strip()]
 
-    paid = args.mode in {"replay", "counterfactual", "all"}
+    paid = args.mode in {"replay", "counterfactual", "calibrate", "all"}
     if paid and not args.yes_paid and not args.dry_run:
-        raise SystemExit("replay/counterfactual/all 会调用 LLM；请加 --yes-paid，或先 --dry-run。")
+        raise SystemExit("replay/counterfactual/calibrate/all 会调用 LLM；请加 --yes-paid，或先 --dry-run。")
+
+    if args.mode == "calibrate":
+        print("\n[calibrate] 反事实效用矩阵标定")
+        cmd = [
+            sys.executable, "-m", "experiments.calibrate_utility",
+            "--event", args.event,
+            "--seeds", args.seeds,
+        ]
+        if args.agents:
+            cmd += ["--agents", str(args.agents)]
+        if args.days:
+            cmd += ["--days", str(args.days)]
+        if args.model:
+            cmd += ["--model", args.model]
+        if args.llm_type:
+            cmd += ["--llm-type", args.llm_type]
+        if args.force:
+            cmd += ["--force"]
+        if args.yes_paid:
+            cmd += ["--yes-paid"]
+        rc = _run(cmd, args.dry_run)
+        if rc != 0:
+            raise SystemExit(rc)
 
     if args.mode in {"validate", "all"}:
         print("\n[validate] 真实侧曲线与阶段汇总")

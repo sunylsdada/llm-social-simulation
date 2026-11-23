@@ -70,7 +70,7 @@
 | `personas/generate_initial_states.py` | 生成第 1 天的 panic/trust/rumor |
 | `personas/prepare_stimulus.py` | 校验刺激源并生成 `post.csv` |
 | `personas/validate_event.py` | 事件包静态校验 |
-| `experiments/` | 验证曲线、形态对比、绘图、策略预检、事件编排 |
+| `experiments/` | 验证曲线、形态对比、绘图、策略预检、效用标定、事件编排 |
 
 ## 四、事件包
 
@@ -256,6 +256,31 @@ agent 的反思输出会记录它认为哪些 pid 是最新、哪些已过时，
 | S5 组合应对 | 简短声明 + 删除极端评论 |
 
 政府决策基于三个目标的加权效用：防恐慌、遏谣言、建信任。效用矩阵按事件从 `processed/utility_matrix.json` 读取；没有文件时全为 0，此时政府会默认选 S1，这只是占位。
+
+### 7.4 效用矩阵标定
+
+默认矩阵全为 0，政府会默认选择 S1。标定流程在 `experiments/calibrate_utility.py`：
+
+1. 对每个随机种子，先跑一次 S1 作为基准；
+2. 用同一初始状态、同一刺激源、同一模型，强制跑 S2–S5；
+3. 取终局或全时域轨迹均值；
+4. 计算相对 S1 的变化；
+5. 按“防恐慌 = -Δpanic、遏谣言 = -Δrumor、建信任 = +Δtrust”写入
+   `events/<id>/processed/utility_matrix.json`；
+6. `build_config()` 会自动加载该文件，政府决策开始使用标定后的矩阵。
+
+推荐命令：
+
+```bash
+python -m experiments.calibrate_utility --event <id> \
+  --seeds 42,43,44 --yes-paid
+
+# 或
+python -m experiments.run_event --event <id> \
+  --mode calibrate --seeds 42,43,44 --yes-paid
+```
+
+`--metric trajectory` 可以用轨迹均值代替终局值，适合末态容易饱和的事件。`--llm-type fake` 只用于流程演示，不能作为研究结论。
 
 ## 八、配置与路径解析
 

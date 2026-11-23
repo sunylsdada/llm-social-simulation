@@ -72,6 +72,9 @@ python -m simulation.run --event <id> --run-id baseline
 # 验证与对比
 python -m experiments.run_event --event <id> --mode validate
 python -m experiments.run_event --event <id> --mode compare --run-id baseline
+
+# 标定政府效用矩阵（S1 为基准，建议至少 3 个种子）
+python -m experiments.calibrate_utility --event <id> --seeds 42,43,44 --yes-paid
 ```
 
 > `simulation.run` 没有 `--yes-paid` 开关；只要不是 `--dry-run` 就会调用 LLM。

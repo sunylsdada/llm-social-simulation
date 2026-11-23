@@ -188,6 +188,36 @@ events/<id>/
 - 政府在配置的决策日，从五种策略中选择一种：沉默观望、压制封堵、坦诚回应、转移议程、组合应对。
 - 分析师 agent 把当天的帖子和评论整理成一份简报。
 
+## 标定政府效用矩阵
+
+效用矩阵默认全为 0，政府因此会默认选择 S1。正式比较策略前，需要先用反事实实验标定：
+
+```bash
+# 推荐：至少 3 个种子，同一初始状态，S1 为基准
+python -m experiments.calibrate_utility --event my_event \
+  --seeds 42,43,44 --yes-paid
+
+# 也可以走事件编排入口
+python -m experiments.run_event --event my_event \
+  --mode calibrate --seeds 42,43,44 --yes-paid
+```
+
+标定会：
+
+1. 对每个种子先跑 S1 沉默观望；
+2. 用同一初始状态强制跑 S2–S5；
+3. 计算相对 S1 的终局变化；
+4. 按“防恐慌 = -Δpanic、遏谣言 = -Δrumor、建信任 = +Δtrust”写回
+   `events/<id>/processed/utility_matrix.json`。
+
+查看当前矩阵：
+
+```bash
+python -m experiments.show_matrix --event my_event
+```
+
+只想演示流程、不调用真实 LLM 时，可以加 `--llm-type fake`；这时矩阵只用于验证链路，不是研究结论。
+
 ## 测试
 
 ```bash

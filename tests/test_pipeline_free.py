@@ -54,6 +54,13 @@ class PipelineFreeTest(unittest.TestCase):
             run([sys.executable, "-m", "simulation.run",
                  "--event", "demo", "--run-id", "test",
                  "--days", "3", "--llm-type", "fake"], env)
+            run([sys.executable, "-m", "experiments.calibrate_utility",
+                 "--event", "demo", "--seeds", "42", "--llm-type", "fake"], env)
+
+            matrix_path = events_root / "demo" / "processed" / "utility_matrix.json"
+            self.assertTrue(matrix_path.exists())
+            matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
+            self.assertEqual(set(matrix["utility_matrix"]), {"S1", "S2", "S3", "S4", "S5"})
 
             record = events_root / "demo" / "outputs" / "runs" / "test" / "record.json"
             self.assertTrue(record.exists())
